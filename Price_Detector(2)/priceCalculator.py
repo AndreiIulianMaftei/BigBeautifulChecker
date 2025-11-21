@@ -1,6 +1,6 @@
 
 
-def get_all_prices(prices_dict):
+def get_all_prices(prices_dict, ):
     """
     Extracts all price values from a dictionary of prices.
 

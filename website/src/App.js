@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -115,6 +117,8 @@ function App() {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
+  const [selectedHorizonYear, setSelectedHorizonYear] = useState(null);
+  const [selectedSystemName, setSelectedSystemName] = useState(null);
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -132,6 +136,134 @@ function App() {
     const tenYear = aggregateReport.totals.find((total) => total.year === 10);
     return tenYear?.total || 0;
   }, [aggregateReport]);
+
+  // Prepare detailed horizon data for modal
+  const horizonModalData = useMemo(() => {
+    if (!selectedHorizonYear || !aggregateReport) return null;
+
+    const horizon = aggregateReport.totals.find(t => t.year === selectedHorizonYear);
+    if (!horizon) return null;
+
+    // Collect all cost profiles up to this year
+    const yearlyBreakdown = Array.from({ length: selectedHorizonYear }, (_, i) => {
+      const year = i + 1;
+      let totalCost = 0;
+      const systems = {};
+
+      processedImages.forEach(image => {
+        (image.costProfiles || []).forEach(profile => {
+          const yearData = profile.yearlySeries.find(entry => entry.year === year);
+          if (yearData && yearData.cost > 0) {
+            totalCost += yearData.cost;
+            if (!systems[profile.label]) {
+              systems[profile.label] = 0;
+            }
+            systems[profile.label] += yearData.cost;
+          }
+        });
+      });
+
+      return {
+        year,
+        totalCost,
+        systems: Object.entries(systems).map(([name, cost]) => ({ name, cost }))
+      };
+    });
+
+    // Calculate cumulative costs by system
+    const systemCumulative = {};
+    processedImages.forEach(image => {
+      (image.costProfiles || []).forEach(profile => {
+        const totalForHorizon = profile.yearlySeries
+          .filter(entry => entry.year <= selectedHorizonYear)
+          .reduce((sum, entry) => sum + entry.cost, 0);
+        
+        if (totalForHorizon > 0) {
+          systemCumulative[profile.label] = (systemCumulative[profile.label] || 0) + totalForHorizon;
+        }
+      });
+    });
+
+    const systemBreakdown = Object.entries(systemCumulative)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    return {
+      year: selectedHorizonYear,
+      total: horizon.total,
+      yearlyBreakdown,
+      systemBreakdown
+    };
+  }, [selectedHorizonYear, aggregateReport, processedImages]);
+
+  // Prepare detailed system data for modal
+  const systemModalData = useMemo(() => {
+    if (!selectedSystemName || !processedImages.length) return null;
+
+    // Collect all instances of this system across images
+    const systemInstances = [];
+    processedImages.forEach((image, imgIdx) => {
+      (image.costProfiles || []).forEach(profile => {
+        if (profile.label === selectedSystemName) {
+          systemInstances.push({
+            imageIndex: imgIdx,
+            imageName: image.fileName,
+            profile,
+            severity: profile.severity,
+            category: profile.category
+          });
+        }
+      });
+    });
+
+    if (systemInstances.length === 0) return null;
+
+    // Aggregate yearly costs across all instances
+    const yearlyData = Array.from({ length: 15 }, (_, i) => {
+      const year = i + 1;
+      let totalCost = 0;
+      const instances = [];
+
+      systemInstances.forEach(instance => {
+        const yearEntry = instance.profile.yearlySeries.find(e => e.year === year);
+        if (yearEntry && yearEntry.cost > 0) {
+          totalCost += yearEntry.cost;
+          instances.push({
+            imageName: instance.imageName,
+            cost: yearEntry.cost,
+            work: yearEntry.scheduled_work
+          });
+        }
+      });
+
+      return { year, totalCost, instances };
+    });
+
+    // Calculate cumulative by instance
+    const instanceBreakdown = systemInstances.map(instance => {
+      const total15Year = instance.profile.horizons.find(h => h.year === 15)?.total || 0;
+      return {
+        imageName: instance.imageName,
+        total: total15Year,
+        severity: instance.severity,
+        category: instance.category,
+        yearlySeries: instance.profile.yearlySeries
+      };
+    });
+
+    const total15Year = instanceBreakdown.reduce((sum, inst) => sum + inst.total, 0);
+    const avgSeverity = systemInstances.reduce((sum, inst) => sum + inst.severity, 0) / systemInstances.length;
+
+    return {
+      systemName: selectedSystemName,
+      totalCost: total15Year,
+      instanceCount: systemInstances.length,
+      averageSeverity: Math.round(avgSeverity),
+      yearlyData,
+      instanceBreakdown,
+      category: systemInstances[0]?.category || 'System'
+    };
+  }, [selectedSystemName, processedImages]);
 
   const plotlyFigure = useMemo(() => {
     if (!selectedImage?.costProfiles?.length) {
@@ -641,11 +773,29 @@ function App() {
               <h3>Total portfolio outlook</h3>
               <div className="overview-grid">
                 {aggregateReport.totals.map((total) => (
-                  <div className="metric-card" key={`total-${total.year}`}>
+                  <motion.div 
+                    className="metric-card horizon-card" 
+                    key={`total-${total.year}`}
+                    whileHover={{ 
+                      scale: 1.05, 
+                      boxShadow: "0 20px 40px rgba(15, 23, 42, 0.15)",
+                      transition: { duration: 0.3 }
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedHorizonYear(total.year)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <p className="metric-label">{total.year}-year horizon</p>
                     <p className="metric-value">{formatCurrency(total.total)}</p>
                     <p className="metric-subtext">Across all uploaded photos</p>
-                  </div>
+                    <motion.div 
+                      className="horizon-card-overlay"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <span>Click to view details</span>
+                    </motion.div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -654,10 +804,20 @@ function App() {
                   <p className="metric-label">Top cost drivers (15-year)</p>
                   <div className="top-systems__list">
                     {aggregateReport.topSystems.map((system) => (
-                      <div className="top-system" key={system.label}>
+                      <motion.div 
+                        className="top-system clickable" 
+                        key={system.label}
+                        whileHover={{ 
+                          x: 8,
+                          backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                          transition: { duration: 0.2 }
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedSystemName(system.label)}
+                      >
                         <span>{system.label}</span>
                         <strong>{formatCurrency(system.value)}</strong>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -900,6 +1060,655 @@ function App() {
           </div>
         </div>
       )}
+
+      <AnimatePresence>
+        {horizonModalData && (
+          <motion.div 
+            className="horizon-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedHorizonYear(null)}
+          >
+            <motion.div 
+              className="horizon-modal"
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 50 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="horizon-modal__header">
+                <div>
+                  <h2>{horizonModalData.year}-Year Cost Horizon</h2>
+                  <p className="horizon-modal__subtitle">
+                    Total projected costs: <strong>{formatCurrency(horizonModalData.total)}</strong>
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  className="close-detail" 
+                  onClick={() => setSelectedHorizonYear(null)}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="horizon-modal__content">
+                {/* Cumulative Area Chart */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h3>Cumulative Cost Growth</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart 
+                      data={horizonModalData.yearlyBreakdown.map((item, idx) => ({
+                        year: item.year,
+                        cumulative: horizonModalData.yearlyBreakdown
+                          .slice(0, idx + 1)
+                          .reduce((sum, y) => sum + y.totalCost, 0)
+                      }))}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="cumulative" 
+                        stroke="#6366f1" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorCumulative)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* Annual Cost Breakdown Bar Chart */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h3>Annual Cost Breakdown</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart 
+                      data={horizonModalData.yearlyBreakdown}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Bar 
+                        dataKey="totalCost" 
+                        fill="#8b5cf6" 
+                        radius={[8, 8, 0, 0]}
+                        animationDuration={800}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* System Breakdown Pie Chart */}
+                {horizonModalData.systemBreakdown.length > 0 && (
+                  <motion.div 
+                    className="chart-section"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h3>Cost Distribution by System</h3>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <PieChart>
+                        <Pie
+                          data={horizonModalData.systemBreakdown}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={120}
+                          fill="#8884d8"
+                          dataKey="value"
+                          animationDuration={800}
+                        >
+                          {horizonModalData.systemBreakdown.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={[
+                                '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
+                                '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
+                              ][index % 8]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => formatCurrency(value)}
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                          }}
+                        />
+                        <Legend 
+                          verticalAlign="bottom" 
+                          height={36}
+                          formatter={(value, entry) => `${value}: ${formatCurrency(entry.payload.value)}`}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </motion.div>
+                )}
+
+                {/* Composed Chart with Line and Bar */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h3>Cost Acceleration Analysis</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ComposedChart 
+                      data={horizonModalData.yearlyBreakdown.map((item, idx) => ({
+                        year: item.year,
+                        annual: item.totalCost,
+                        cumulative: horizonModalData.yearlyBreakdown
+                          .slice(0, idx + 1)
+                          .reduce((sum, y) => sum + y.totalCost, 0),
+                        average: horizonModalData.yearlyBreakdown
+                          .slice(0, idx + 1)
+                          .reduce((sum, y) => sum + y.totalCost, 0) / (idx + 1)
+                      }))}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Legend />
+                      <Bar 
+                        dataKey="annual" 
+                        fill="#a78bfa" 
+                        radius={[8, 8, 0, 0]}
+                        name="Annual Cost"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="average" 
+                        stroke="#f59e0b" 
+                        strokeWidth={3}
+                        name="Average Cost"
+                        dot={{ fill: '#f59e0b', r: 5 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="cumulative" 
+                        stroke="#10b981" 
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        name="Cumulative"
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* System-wise breakdown list */}
+                <motion.div 
+                  className="system-breakdown-list"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <h3>Detailed System Costs</h3>
+                  <div className="system-breakdown-grid">
+                    {horizonModalData.systemBreakdown.map((system, idx) => (
+                      <motion.div 
+                        key={system.name}
+                        className="system-breakdown-item"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 + idx * 0.05 }}
+                      >
+                        <div className="system-breakdown-header">
+                          <span className="system-breakdown-name">{system.name}</span>
+                          <span className="system-breakdown-value">{formatCurrency(system.value)}</span>
+                        </div>
+                        <div className="system-breakdown-bar">
+                          <motion.div 
+                            className="system-breakdown-fill"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(system.value / horizonModalData.total) * 100}%` }}
+                            transition={{ duration: 0.8, delay: 0.5 + idx * 0.05 }}
+                            style={{
+                              background: [
+                                '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
+                                '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
+                              ][idx % 8]
+                            }}
+                          />
+                        </div>
+                        <span className="system-breakdown-percent">
+                          {((system.value / horizonModalData.total) * 100).toFixed(1)}% of total
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {systemModalData && (
+          <motion.div 
+            className="horizon-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedSystemName(null)}
+          >
+            <motion.div 
+              className="horizon-modal"
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 50 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="horizon-modal__header">
+                <div>
+                  <h2>{systemModalData.systemName}</h2>
+                  <p className="horizon-modal__subtitle">
+                    {systemModalData.category} • Total 15-year cost: <strong>{formatCurrency(systemModalData.totalCost)}</strong>
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <span className={`severity-pill severity-${systemModalData.averageSeverity}`}>
+                      Avg Severity {systemModalData.averageSeverity}/5
+                    </span>
+                    <span className="info-pill">
+                      {systemModalData.instanceCount} instance{systemModalData.instanceCount > 1 ? 's' : ''} detected
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  className="close-detail" 
+                  onClick={() => setSelectedSystemName(null)}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="horizon-modal__content">
+                {/* Cumulative Cost by Year */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h3>Cumulative Cost Projection</h3>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <AreaChart 
+                      data={systemModalData.yearlyData.map((item, idx) => ({
+                        year: item.year,
+                        cumulative: systemModalData.yearlyData
+                          .slice(0, idx + 1)
+                          .reduce((sum, y) => sum + y.totalCost, 0)
+                      }))}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorSystemCumulative" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ec4899" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#ec4899" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="cumulative" 
+                        stroke="#ec4899" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorSystemCumulative)" 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* Annual Costs with Stacked Instances */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <h3>Annual Cost Breakdown</h3>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart 
+                      data={systemModalData.yearlyData.filter(d => d.totalCost > 0)}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.[0]) return null;
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{ 
+                              backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '12px',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}>
+                              <p style={{ margin: '0 0 8px', fontWeight: 'bold' }}>Year {data.year}</p>
+                              <p style={{ margin: '0 0 8px', color: '#6b7280' }}>
+                                Total: {formatCurrency(data.totalCost)}
+                              </p>
+                              {data.instances.length > 0 && (
+                                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '8px', marginTop: '8px' }}>
+                                  {data.instances.map((inst, idx) => (
+                                    <div key={idx} style={{ fontSize: '12px', margin: '4px 0' }}>
+                                      <strong>{inst.imageName}:</strong> {formatCurrency(inst.cost)}
+                                      <div style={{ color: '#6b7280', fontSize: '11px' }}>{inst.work}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      <Bar 
+                        dataKey="totalCost" 
+                        fill="#ec4899" 
+                        radius={[8, 8, 0, 0]}
+                        animationDuration={800}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* Instance Comparison Pie Chart */}
+                {systemModalData.instanceBreakdown.length > 1 && (
+                  <motion.div 
+                    className="chart-section"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h3>Cost Distribution by Location</h3>
+                    <ResponsiveContainer width="100%" height={350}>
+                      <PieChart>
+                        <Pie
+                          data={systemModalData.instanceBreakdown}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ imageName, total }) => `${imageName.substring(0, 20)}: ${formatCurrency(total)}`}
+                          outerRadius={120}
+                          dataKey="total"
+                          animationDuration={800}
+                        >
+                          {systemModalData.instanceBreakdown.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={[
+                                '#ec4899', '#f59e0b', '#10b981', '#6366f1', 
+                                '#8b5cf6', '#3b82f6', '#ef4444', '#14b8a6'
+                              ][index % 8]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => formatCurrency(value)}
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                          }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </motion.div>
+                )}
+
+                {/* Year-over-year comparison line chart */}
+                <motion.div 
+                  className="chart-section"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h3>Cost Trend Analysis</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart 
+                      data={systemModalData.yearlyData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="year" 
+                        stroke="#6b7280"
+                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                      />
+                      <YAxis 
+                        stroke="#6b7280"
+                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => formatCurrency(value)}
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="totalCost" 
+                        stroke="#ec4899" 
+                        strokeWidth={3}
+                        name="Annual Cost"
+                        dot={{ fill: '#ec4899', r: 6 }}
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </motion.div>
+
+                {/* Detailed Instance Breakdown */}
+                <motion.div 
+                  className="system-breakdown-list"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <h3>Detailed Breakdown by Location</h3>
+                  <div className="system-breakdown-grid">
+                    {systemModalData.instanceBreakdown.map((instance, idx) => (
+                      <motion.div 
+                        key={`${instance.imageName}-${idx}`}
+                        className="system-breakdown-item"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 + idx * 0.05 }}
+                      >
+                        <div className="system-breakdown-header">
+                          <div>
+                            <span className="system-breakdown-name">{instance.imageName}</span>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                              <span className={`severity-pill severity-${instance.severity}`} style={{ fontSize: '10px', padding: '4px 8px' }}>
+                                Severity {instance.severity}/5
+                              </span>
+                              <span style={{ fontSize: '11px', color: '#6b7280' }}>{instance.category}</span>
+                            </div>
+                          </div>
+                          <span className="system-breakdown-value">{formatCurrency(instance.total)}</span>
+                        </div>
+                        <div className="system-breakdown-bar">
+                          <motion.div 
+                            className="system-breakdown-fill"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(instance.total / systemModalData.totalCost) * 100}%` }}
+                            transition={{ duration: 0.8, delay: 0.5 + idx * 0.05 }}
+                            style={{ background: '#ec4899' }}
+                          />
+                        </div>
+                        <span className="system-breakdown-percent">
+                          {((instance.total / systemModalData.totalCost) * 100).toFixed(1)}% of total system cost
+                        </span>
+                        
+                        {/* Mini timeline for this instance */}
+                        <div style={{ marginTop: '12px', padding: '12px', background: 'white', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: '#6b7280' }}>
+                            COST TIMELINE
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px' }}>
+                            {instance.yearlySeries.map((yearData, yIdx) => {
+                              const maxCost = Math.max(...instance.yearlySeries.map(y => y.cost));
+                              const height = maxCost > 0 ? (yearData.cost / maxCost) * 100 : 0;
+                              return (
+                                <div 
+                                  key={yIdx}
+                                  style={{
+                                    flex: 1,
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'flex-end'
+                                  }}
+                                  title={`Year ${yearData.year}: ${formatCurrency(yearData.cost)}\n${yearData.scheduled_work}`}
+                                >
+                                  <motion.div
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${height}%` }}
+                                    transition={{ duration: 0.6, delay: 0.6 + idx * 0.05 + yIdx * 0.02 }}
+                                    style={{
+                                      width: '100%',
+                                      background: yearData.cost > 0 ? '#ec4899' : '#e5e7eb',
+                                      borderRadius: '2px 2px 0 0',
+                                      minHeight: yearData.cost > 0 ? '3px' : '1px'
+                                    }}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '9px', color: '#9ca3af' }}>
+                            <span>Y1</span>
+                            <span>Y15</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

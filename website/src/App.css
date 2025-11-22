@@ -539,6 +539,18 @@
   align-items: center;
   justify-content: space-between;
   font-size: 15px;
+  padding: 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.top-system.clickable {
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.top-system.clickable:hover {
+  border-color: #6366f1;
 }
 
 .graph-card {
@@ -698,6 +710,15 @@
 .severity-5 {
   background: rgba(239, 83, 80, 0.2);
   color: #b71c1c;
+}
+
+.info-pill {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
 }
 
 .analysis-meta {
@@ -1170,4 +1191,265 @@
     min-height: 300px;
   }
 }
+
+/* Horizon Card Hover Effects */
+.horizon-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.horizon-card:hover {
+  transform: translateY(-4px);
+}
+
+.horizon-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+/* Horizon Modal */
+.horizon-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.horizon-modal {
+  background: white;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1400px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.horizon-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px 40px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.horizon-modal__header h2 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.horizon-modal__subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.horizon-modal__subtitle strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.horizon-modal__content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 32px 40px;
+  background: #fafafa;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  pointer-events: auto;
+}
+
+.chart-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* System Breakdown List */
+.system-breakdown-list {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+.system-breakdown-list h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.system-breakdown-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.system-breakdown-item {
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.system-breakdown-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.system-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.system-breakdown-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 15px;
+}
+
+.system-breakdown-value {
+  font-weight: 700;
+  color: #6366f1;
+  font-size: 16px;
+}
+
+.system-breakdown-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.system-breakdown-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.system-breakdown-percent {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Recharts Custom Styling */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.recharts-legend-wrapper {
+  padding-top: 16px !important;
+}
+
+/* Responsive Horizon Modal */
+@media (max-width: 1200px) {
+  .horizon-modal {
+    max-width: 95%;
+  }
+  
+  .horizon-modal__content {
+    padding: 24px;
+  }
+  
+  .horizon-modal__header {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .horizon-modal {
+    max-width: 98%;
+    max-height: 95vh;
+  }
+  
+  .horizon-modal__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .horizon-modal__header h2 {
+    font-size: 24px;
+  }
+  
+  .horizon-modal__content {
+    padding: 16px;
+  }
+  
+  .chart-section {
+    padding: 16px;
+  }
+  
+  .system-breakdown-list {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .horizon-modal__header h2 {
+    font-size: 20px;
+  }
+  
+  .horizon-modal__subtitle {
+    font-size: 14px;
+  }
+  
+  .chart-section h3 {
+    font-size: 16px;
+  }
+  
+  .horizon-card-overlay span {
+    font-size: 12px;
+  }
+}
+
 

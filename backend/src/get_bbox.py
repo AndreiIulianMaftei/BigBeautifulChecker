@@ -107,7 +107,7 @@ def detect_single_image(path_to_image: str, classes: list, subcategories: list):
     Important: Only return the json object nothing else.
 
     The possible damage types are: {', '.join(classes) if classes else 'crack, mold, water_damage, rust, broken_window, chipped_paint, sagging_roof, damaged_door, faulty_wiring, leaking_pipe'}.
-    severity_level should range from 1 to 5. 1 indicates minor damage while 5 indicates severe damage.
+    severity_level should range from 1 to 5. 1 indicates perfect condition, 3 indicates change overdue, and 5 indicates severe damage requiring immediate attention.
     subcategory_type should be one of the following building components from the database: {subcategory_text}
     
     Choose the most appropriate subcategory that matches the damaged component.

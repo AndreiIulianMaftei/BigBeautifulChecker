@@ -13,3 +13,4 @@ __pycache__
 Dockerfile
 .dockerignore
 .env
+google-cloud-sdk/

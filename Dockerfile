@@ -10,6 +10,7 @@ RUN npm install
 
 # Copy the rest of the frontend code
 COPY website/ ./
+COPY . .
 
 # Build the static files
 RUN npm run build

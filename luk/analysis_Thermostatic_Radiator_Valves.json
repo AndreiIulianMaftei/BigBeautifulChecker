@@ -1,0 +1,101 @@
+{
+  "damage_item": "Thermostatic Radiator Valves",
+  "severity": "Medium",
+  "complete_data": {
+    "Category": "Heating / Ventilation / Climate",
+    "Item": "Valves: Thermostatic Radiator Valves",
+    "lifespan_years": "20",
+    "price_type": "Replacement",
+    "price_chf": "350",
+    "unit": "per piece"
+  },
+  "repair_schedule": {
+    "next_repair_year": 5,
+    "repair_type": "Repair",
+    "estimated_cost": 175,
+    "additional_maintenance": [
+      {
+        "year": 2,
+        "type": "Calibration Check",
+        "cost": 50
+      }
+    ],
+    "severity_impact": "Medium damage severity indicates that the valves are experiencing some issues, but are not yet failing completely. This reduces the lifespan and necessitates a repair sooner than the typical 20-year lifespan. The predicted repair addresses current moderate issues, and the calibration check aims to prevent further degradation. Without intervention, the valves might require full replacement much sooner. The cost reflects the need for part replacement and labor for the repair and calibration."
+  },
+  "ten_year_projection": {
+    "yearly_costs": [
+      {
+        "year": 1,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 2,
+        "scheduled_work": "Calibration Check",
+        "cost": 51.0,
+        "cumulative_cost": 51.0,
+        "notes": "Scheduled calibration check with 2.0% inflation"
+      },
+      {
+        "year": 3,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 51.0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 4,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 51.0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 5,
+        "scheduled_work": "Repair",
+        "cost": 189.43,
+        "cumulative_cost": 240.43,
+        "notes": "Scheduled repair with 2.0% inflation"
+      },
+      {
+        "year": 6,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 240.43,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 7,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 240.43,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 8,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 240.43,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 9,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 240.43,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 10,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 240.43,
+        "notes": "No scheduled work"
+      }
+    ],
+    "total_10year_cost": 240.43,
+    "summary": "Total of 2 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
+  }
+}

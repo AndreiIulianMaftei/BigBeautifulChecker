@@ -1,0 +1,107 @@
+{
+  "damage_item": "Boiler",
+  "severity": "High",
+  "complete_data": {
+    "lifespan_years": 20,
+    "price_type": "Replacement",
+    "price_chf": 15000,
+    "unit": "per piece",
+    "reasoning": "Boiler replacement is a major expense. CHF 15,000 is a reasonable average price for a new boiler including installation in Switzerland. Lifespan is already specified. Unit is 'per piece' because we're replacing the entire boiler.",
+    "Category": "Heating / Ventilation / Climate",
+    "Item": "Boiler"
+  },
+  "repair_schedule": {
+    "next_repair_year": 2,
+    "repair_type": "Repair",
+    "estimated_cost": 4500,
+    "additional_maintenance": [
+      {
+        "year": 5,
+        "type": "Comprehensive Inspection and Tune-up",
+        "cost": 1000
+      },
+      {
+        "year": 7,
+        "type": "Component Repair/Possible Replacement (e.g., Burner)",
+        "cost": 6000
+      }
+    ],
+    "severity_impact": "High damage severity significantly accelerates the need for repairs and increases the likelihood of component failures before the boiler reaches its normal lifespan of 20 years. This necessitates more frequent and costly interventions, potentially leading to a partial or complete replacement earlier than anticipated."
+  },
+  "ten_year_projection": {
+    "yearly_costs": [
+      {
+        "year": 1,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 2,
+        "scheduled_work": "Repair",
+        "cost": 4590.0,
+        "cumulative_cost": 4590.0,
+        "notes": "Scheduled repair with 2.0% inflation"
+      },
+      {
+        "year": 3,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 4590.0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 4,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 4590.0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 5,
+        "scheduled_work": "Comprehensive Inspection and Tune-up",
+        "cost": 1082.43,
+        "cumulative_cost": 5672.43,
+        "notes": "Scheduled comprehensive inspection and tune-up with 2.0% inflation"
+      },
+      {
+        "year": 6,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 5672.43,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 7,
+        "scheduled_work": "Component Repair/Possible Replacement (e.g., Burner)",
+        "cost": 6756.97,
+        "cumulative_cost": 12429.41,
+        "notes": "Scheduled component repair/possible replacement (e.g., burner) with 2.0% inflation"
+      },
+      {
+        "year": 8,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 12429.41,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 9,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 12429.41,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 10,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 12429.41,
+        "notes": "No scheduled work"
+      }
+    ],
+    "total_10year_cost": 12429.41,
+    "summary": "Total of 3 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "damage_item": "Air Conditioning Units",
+  "severity": "Low",
+  "complete_data": {
+    "Category": "Heating / Ventilation / Climate",
+    "Item": "Air Conditioning Units, Small Units for Individual Rooms",
+    "lifespan_years": "15",
+    "price_type": "Replacement",
+    "price_chf": "1300",
+    "unit": "per piece"
+  },
+  "repair_schedule": {
+    "next_repair_year": 5,
+    "repair_type": "Maintenance",
+    "estimated_cost": 250,
+    "additional_maintenance": [
+      {
+        "year": 3,
+        "type": "Filter Replacement and Coil Cleaning",
+        "cost": 150
+      },
+      {
+        "year": 8,
+        "type": "Refrigerant Level Check and Top-up (if needed)",
+        "cost": 200
+      }
+    ],
+    "severity_impact": "Low damage severity indicates minor issues, such as reduced efficiency or slight operational anomalies. This extends the lifespan before major repairs or replacement are needed but necessitates regular, inexpensive maintenance to prevent escalation. Without maintenance, the lifespan will be shortened and costs will increase significantly."
+  },
+  "ten_year_projection": {
+    "yearly_costs": [
+      {
+        "year": 1,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 2,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 0,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 3,
+        "scheduled_work": "Filter Replacement and Coil Cleaning",
+        "cost": 156.06,
+        "cumulative_cost": 156.06,
+        "notes": "Scheduled filter replacement and coil cleaning with 2.0% inflation"
+      },
+      {
+        "year": 4,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 156.06,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 5,
+        "scheduled_work": "Maintenance",
+        "cost": 270.61,
+        "cumulative_cost": 426.67,
+        "notes": "Scheduled maintenance with 2.0% inflation"
+      },
+      {
+        "year": 6,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 426.67,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 7,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 426.67,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 8,
+        "scheduled_work": "Refrigerant Level Check and Top-up (if needed)",
+        "cost": 229.74,
+        "cumulative_cost": 656.41,
+        "notes": "Scheduled refrigerant level check and top-up (if needed) with 2.0% inflation"
+      },
+      {
+        "year": 9,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 656.41,
+        "notes": "No scheduled work"
+      },
+      {
+        "year": 10,
+        "scheduled_work": "none",
+        "cost": 0,
+        "cumulative_cost": 656.41,
+        "notes": "No scheduled work"
+      }
+    ],
+    "total_10year_cost": 656.41,
+    "summary": "Total of 3 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
+  }
+}

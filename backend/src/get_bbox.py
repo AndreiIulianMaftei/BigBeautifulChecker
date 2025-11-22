@@ -8,7 +8,6 @@ import time
 import pandas as pd
 import google.generativeai as genai
 from pathlib import Path
-from google.generativeai import types
 from dotenv import load_dotenv
 from multiprocessing import Pool
 import pathlib
@@ -39,7 +38,9 @@ CSV_PATH = Path(CODEBASE_DIR) / "dataset" / "message.csv"
 
 def detect_image_category(path_to_image: str) -> str:
     """First pass: Detect which main category the image belongs to"""
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel(os.getenv("model"))
+    
     category_prompt = f"""Analyze this image of a building interior or exterior and determine which ONE category it belongs to.
     
     Choose ONLY ONE category from this list:
@@ -48,19 +49,10 @@ def detect_image_category(path_to_image: str) -> str:
     Return ONLY the exact category name, nothing else.
     """
     
-    with open(path_to_image, 'rb') as f:
-        image_bytes = f.read()
+    from PIL import Image
+    image = Image.open(path_to_image)
     
-    response = client.models.generate_content(
-        model=os.getenv("model"),
-        contents=[
-            types.Part.from_bytes(
-                data=image_bytes,
-                mime_type='image/jpeg',
-            ),
-            category_prompt
-        ]
-    )
+    response = model.generate_content([category_prompt, image])
     
     detected_category = response.text.strip()
     print(f"Detected category: {detected_category}")
@@ -93,7 +85,8 @@ def get_subcategories_from_csv(category: str) -> list:
 
 def detect_single_image(path_to_image: str, subcategories: list):
     """Second pass: Detect damages using subcategories from CSV"""
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel(os.getenv("model"))
     
     # Build subcategory list for prompt
     if subcategories:
@@ -112,7 +105,7 @@ def detect_single_image(path_to_image: str, subcategories: list):
     - If damage is VISIBLE and APPARENT (clearly visible structural issues, active leaks, exposed wiring, large cracks, significant water damage, mold growth): Assign severity 4-5 immediately. These require urgent attention.
     - If damage is MODERATE but contained (small cracks, minor discoloration, slight wear, cosmetic issues): Assign severity 2-3. These can be addressed over time.
     - Only assign severity 1 for truly cosmetic issues that don't affect function or safety.
-    - When in doubt about apparent damage, lean towards HIGHER severity (4-5) rather than lower. It's better to flag potential problems early.
+    - When in doubt about apparent damage, lean towards Medium severity (3-5) rather than lower. It's better to flag potential problems early.
     
     subcategory_type should be one of the following building components from the database: {subcategory_text}
     
@@ -126,19 +119,10 @@ def detect_single_image(path_to_image: str, subcategories: list):
         "subcategory": "<subcategory_type>"
     }}
     """
-    with open(path_to_image, 'rb') as f:
-        image_bytes = f.read()
+    from PIL import Image
+    image = Image.open(path_to_image)
 
-    response = client.models.generate_content(
-        model=os.getenv("model"),
-        contents=[
-            types.Part.from_bytes(
-                data=image_bytes,
-                mime_type='image/jpeg',
-            ),
-            std_detection_prompt
-        ]
-    )
+    response = model.generate_content([std_detection_prompt, image])
     print(f"LLM response: {response.text}")
     return response.text
 

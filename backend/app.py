@@ -3,8 +3,10 @@ import shutil
 import uvicorn
 import json
 import asyncio
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Body
-from typing import List, Optional, Dict
+import base64
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
 from pydantic import BaseModel
 
 try:
@@ -28,6 +30,14 @@ class PriceRequest(BaseModel):
 
 app = FastAPI(title="Damage Detection Backend")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # tighten for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 UPLOAD_DIR = "temp_uploads"
 RESULTS_DIR = "temp_results"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -41,6 +51,8 @@ async def detect_damage(
         description="A JSON formatted string of classes, e.g., '[\"crack\", \"mold\"]'"
     )
 ):
+    temp_input_path = None
+    destination_path = None
     try:
         try:
             class_list = json.loads(classes)
@@ -59,7 +71,17 @@ async def detect_damage(
         destination_path = os.path.join(RESULTS_DIR, output_filename)
 
         result_json = get_bbox(temp_input_path, destination_path, class_list)
-        return result_json
+
+        encoded_image = None
+        if os.path.exists(destination_path):
+            with open(destination_path, "rb") as annotated_file:
+                encoded_image = base64.b64encode(annotated_file.read()).decode("utf-8")
+
+        return {
+            "result": result_json,
+            "annotated_image_base64": encoded_image,
+            "filename": output_filename,
+        }
 
     except Exception as e:
         import traceback

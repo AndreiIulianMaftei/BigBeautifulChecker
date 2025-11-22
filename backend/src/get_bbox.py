@@ -5,6 +5,7 @@ import sys
 import cv2
 import json
 import time
+import pandas as pd
 from google import genai
 from pathlib import Path
 from google.genai import types
@@ -34,20 +35,89 @@ CATEGORIES = [
     "Reductions for Special Use"
 ]
 
-def detect_single_image(path_to_image : str, classes: list):
+CSV_PATH = Path(CODEBASE_DIR) / "dataset" / "message.csv"
+
+def detect_image_category(path_to_image: str) -> str:
+    """First pass: Detect which main category the image belongs to"""
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    category_prompt = f"""Analyze this image of a building interior or exterior and determine which ONE category it belongs to.
+    
+    Choose ONLY ONE category from this list:
+    {chr(10).join([f"- {cat}" for cat in CATEGORIES])}
+    
+    Return ONLY the exact category name, nothing else.
+    """
+    
+    with open(path_to_image, 'rb') as f:
+        image_bytes = f.read()
+    
+    response = client.models.generate_content(
+        model=os.getenv("model"),
+        contents=[
+            types.Part.from_bytes(
+                data=image_bytes,
+                mime_type='image/jpeg',
+            ),
+            category_prompt
+        ]
+    )
+    
+    detected_category = response.text.strip()
+    print(f"Detected category: {detected_category}")
+    
+    # Validate category
+    if detected_category not in CATEGORIES:
+        # Try to find closest match
+        for cat in CATEGORIES:
+            if cat.lower() in detected_category.lower() or detected_category.lower() in cat.lower():
+                detected_category = cat
+                break
+        else:
+            # Default to Building Envelope if no match
+            detected_category = "Building Envelope"
+            print(f"Warning: Category not recognized, defaulting to {detected_category}")
+    
+    return detected_category
+
+def get_subcategories_from_csv(category: str) -> list:
+    """Load subcategories (Item/Subitem) from CSV for the detected category"""
+    try:
+        df = pd.read_csv(CSV_PATH)
+        # Filter by category and get unique subcategories
+        subcategories = df[df['Category'] == category]['Item/Subitem'].unique().tolist()
+        print(f"Found {len(subcategories)} subcategories for '{category}'")
+        return subcategories
+    except Exception as e:
+        print(f"Error loading subcategories: {e}")
+        return []
+
+def detect_single_image(path_to_image: str, classes: list, subcategories: list):
+    """Second pass: Detect damages using subcategories from CSV"""
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    
+    # Build subcategory list for prompt
+    if subcategories:
+        subcategory_text = ', '.join(subcategories[:50])  # Limit to avoid token overflow
+        if len(subcategories) > 50:
+            subcategory_text += ', and more...'
+    else:
+        subcategory_text = 'any building component'
+    
     std_detection_prompt = f"""Please locate the damages in the given image of house interior and exterior and output the bounding boxes. Be as precise as possible. But only list the damages that you are very confident about, and only list the ones that are evident. The box_2d should be [ymin, xmin, ymax, xmax] normalized to 0-1000."
     Important: Only return the json object nothing else.
 
     The possible damage types are: {', '.join(classes) if classes else 'crack, mold, water_damage, rust, broken_window, chipped_paint, sagging_roof, damaged_door, faulty_wiring, leaking_pipe'}.
     severity_level should range from 1 to 5. 1 indicates minor damage while 5 indicates severe damage.
-    category_type should be one of the follwoing values. The values should be exactly how it's in this list: {', '.join(CATEGORIES)}
+    subcategory_type should be one of the following building components from the database: {subcategory_text}
+    
+    Choose the most appropriate subcategory that matches the damaged component.
+    
     The output format should be a JSON array where each element has the following structure:
     {{
         "label": "<damage_type>",
         "box_2d": [ymin, xmin, ymax, xmax],
         "severity": "<severity_level>",
-        "catagory": <category_type>
+        "subcategory": "<subcategory_type>"
     }}
     """
     with open(path_to_image, 'rb') as f:
@@ -70,7 +140,17 @@ def get_bbox(path_to_image: str, destination_path: str, classes: list):
     image = cv2.imread(path_to_image)
     height, width = image.shape[:2]
 
-    response_text = detect_single_image(path_to_image, classes)
+    # Stage 1: Detect category
+    print("\n=== Stage 1: Detecting image category ===")
+    detected_category = detect_image_category(path_to_image)
+    
+    # Stage 2: Get subcategories from CSV for that category
+    print("\n=== Stage 2: Loading subcategories from CSV ===")
+    subcategories = get_subcategories_from_csv(detected_category)
+    
+    # Stage 3: Detect damages with subcategories
+    print("\n=== Stage 3: Detecting damages with subcategories ===")
+    response_text = detect_single_image(path_to_image, classes, subcategories)
 
     try:
         lines = response_text.strip().split('\n')
@@ -99,6 +179,7 @@ def get_bbox(path_to_image: str, destination_path: str, classes: list):
 
     annotation_json = {
         "imageID" : os.path.splitext(os.path.basename(path_to_image))[0],
+        "detected_category": detected_category,
         "annotation" : response_json
     }
     return annotation_json

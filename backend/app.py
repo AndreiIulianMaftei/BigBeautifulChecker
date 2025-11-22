@@ -179,8 +179,12 @@ async def detect_and_price(
                 # Clamp severity to 1-5 range
                 severity = max(1, min(5, severity))
                 
+                # Use subcategory for pricing (this matches CSV Item/Subitem)
+                # Fallback to label if subcategory not present
+                item_name = ann.get("subcategory", ann.get("label", "unknown"))
+                
                 damage_items.append({
-                    "item": ann.get("label", "unknown"),
+                    "item": item_name,
                     "severity": severity
                 })
         

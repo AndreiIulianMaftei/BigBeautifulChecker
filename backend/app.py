@@ -4,10 +4,14 @@ import uvicorn
 import json
 import asyncio
 import base64
+import io
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from pydantic import BaseModel
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 try:
     from src.get_bbox import get_bbox
@@ -196,11 +200,23 @@ async def detect_and_price(
                 use_mock=use_mock_pricing,
                 max_concurrent=max_concurrent
             )
-        
+
+        encoded_image = None
+        if os.path.exists(destination_path):
+            with open(destination_path, "rb") as annotated_file:
+                encoded_image = base64.b64encode(annotated_file.read()).decode("utf-8")
+
+        graph_image = None
+        if pricing_result:
+            graph_image = generate_cost_graph(pricing_result)
+
         # Combine results
         combined_result = {
             "detection": detection_result,
             "pricing": pricing_result,
+            "annotated_image_base64": encoded_image,
+            "cost_graph_base64": graph_image,
+            "filename": output_filename,
             "annotated_image_path": destination_path
         }
         
@@ -215,6 +231,42 @@ async def detect_and_price(
         if temp_input_path and os.path.exists(temp_input_path):
             # os.remove(temp_input_path)
             pass
+
+def generate_cost_graph(pricing_result):
+    analyses = pricing_result.get("analyses") if pricing_result else None
+    if not analyses:
+        return None
+
+    years = list(range(1, 16))
+    fig, ax = plt.subplots(figsize=(6, 4))
+
+    for analysis in analyses:
+        yearly_costs = analysis.get("ten_year_projection", {}).get("yearly_costs", [])
+        cumulative = []
+        running_total = 0
+        cost_lookup = {
+            int(item.get("year", 0)): float(item.get("cost", 0))
+            for item in yearly_costs
+            if item.get("year") is not None
+        }
+        for year in years:
+            running_total += cost_lookup.get(year, 0)
+            cumulative.append(running_total)
+        ax.plot(years, cumulative, label=analysis.get("damage_item", "Damage"), linewidth=2)
+
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Cumulative cost (CHF)")
+    ax.set_title("15-year cost projection")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png")
+    plt.close(fig)
+    buffer.seek(0)
+    return base64.b64encode(buffer.read()).decode("utf-8")
+
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

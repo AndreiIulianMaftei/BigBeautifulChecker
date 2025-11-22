@@ -1,0 +1,127 @@
+{
+  "timestamp": "2025-11-22T13:47:47.802208",
+  "input": {
+    "address": "Munich",
+    "current_price": 450000,
+    "property_type": "APARTMENTBUY"
+  },
+  "market_data": {
+    "source": "thinkimmo_api",
+    "average_gross_return": 6.53909090909091
+  },
+  "valuation": {
+    "initial_price": 450000,
+    "gross_return_percentage": 6.53909090909091,
+    "appreciation_rate": 2.5,
+    "annual_rental_income_initial": 29425.91,
+    "yearly_projections": [
+      {
+        "year": 1,
+        "property_value": 461250.0,
+        "annual_rental_income": 29793.73,
+        "cumulative_rental_income": 29793.73,
+        "maintenance_cost": 4612.5,
+        "net_annual_income": 25181.23,
+        "total_value": 486431.23,
+        "roi_percentage": 8.1
+      },
+      {
+        "year": 2,
+        "property_value": 472781.25,
+        "annual_rental_income": 30166.15,
+        "cumulative_rental_income": 59959.89,
+        "maintenance_cost": 4727.81,
+        "net_annual_income": 25438.34,
+        "total_value": 523285.51,
+        "roi_percentage": 16.29
+      },
+      {
+        "year": 3,
+        "property_value": 484600.78,
+        "annual_rental_income": 30543.23,
+        "cumulative_rental_income": 90503.12,
+        "maintenance_cost": 4846.01,
+        "net_annual_income": 25697.22,
+        "total_value": 560565.88,
+        "roi_percentage": 24.57
+      },
+      {
+        "year": 4,
+        "property_value": 496715.8,
+        "annual_rental_income": 30925.02,
+        "cumulative_rental_income": 121428.14,
+        "maintenance_cost": 4967.16,
+        "net_annual_income": 25957.86,
+        "total_value": 598275.31,
+        "roi_percentage": 32.95
+      },
+      {
+        "year": 5,
+        "property_value": 509133.7,
+        "annual_rental_income": 31311.58,
+        "cumulative_rental_income": 152739.73,
+        "maintenance_cost": 5091.34,
+        "net_annual_income": 26220.25,
+        "total_value": 636416.74,
+        "roi_percentage": 41.43
+      },
+      {
+        "year": 6,
+        "property_value": 521862.04,
+        "annual_rental_income": 31702.98,
+        "cumulative_rental_income": 184442.71,
+        "maintenance_cost": 5218.62,
+        "net_annual_income": 26484.36,
+        "total_value": 674993.02,
+        "roi_percentage": 50.0
+      },
+      {
+        "year": 7,
+        "property_value": 534908.59,
+        "annual_rental_income": 32099.27,
+        "cumulative_rental_income": 216541.97,
+        "maintenance_cost": 5349.09,
+        "net_annual_income": 26750.18,
+        "total_value": 714006.96,
+        "roi_percentage": 58.67
+      },
+      {
+        "year": 8,
+        "property_value": 548281.3,
+        "annual_rental_income": 32500.51,
+        "cumulative_rental_income": 249042.48,
+        "maintenance_cost": 5482.81,
+        "net_annual_income": 27017.69,
+        "total_value": 753461.28,
+        "roi_percentage": 67.44
+      },
+      {
+        "year": 9,
+        "property_value": 561988.34,
+        "annual_rental_income": 32906.76,
+        "cumulative_rental_income": 281949.24,
+        "maintenance_cost": 5619.88,
+        "net_annual_income": 27286.88,
+        "total_value": 793358.63,
+        "roi_percentage": 76.3
+      },
+      {
+        "year": 10,
+        "property_value": 576038.04,
+        "annual_rental_income": 33318.1,
+        "cumulative_rental_income": 315267.34,
+        "maintenance_cost": 5760.38,
+        "net_annual_income": 27557.72,
+        "total_value": 833701.58,
+        "roi_percentage": 85.27
+      }
+    ],
+    "10_year_summary": {
+      "final_property_value": 576038.04,
+      "total_rental_income": 315267.34,
+      "total_maintenance_costs": 57603.8,
+      "total_return": 383701.58,
+      "total_roi_percentage": 85.27
+    }
+  }
+}

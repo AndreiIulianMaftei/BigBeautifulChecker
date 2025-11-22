@@ -16,11 +16,13 @@ import matplotlib.pyplot as plt
 try:
     from src.get_bbox import get_bbox
     from src.price_calculator import analyze_damages_for_endpoint
+    from src.property_valuation import calculate_property_valuation_endpoint
 except ImportError:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
     from src.get_bbox import get_bbox
     from src.price_calculator import analyze_damages_for_endpoint
+    from src.property_valuation import calculate_property_valuation_endpoint
 
 # Pydantic models for request/response
 class DamageItem(BaseModel):
@@ -31,6 +33,11 @@ class PriceRequest(BaseModel):
     damage_items: List[DamageItem]
     use_mock: bool = False
     max_concurrent: int = 5
+
+class PropertyValuationRequest(BaseModel):
+    current_price: float
+    address: str
+    property_type: str = "APARTMENTBUY"
 
 app = FastAPI(title="Damage Detection Backend")
 
@@ -231,6 +238,42 @@ async def detect_and_price(
         if temp_input_path and os.path.exists(temp_input_path):
             # os.remove(temp_input_path)
             pass
+
+@app.post("/property-valuation", summary="Calculate 10-year property valuation")
+def property_valuation(request: PropertyValuationRequest):
+    """
+    Calculate 10-year property valuation based on market gross return.
+    
+    Uses ThinkImmo API to fetch market data and calculate property appreciation
+    and rental income projections over 10 years.
+    
+    Request body:
+    {
+        "current_price": 450000,
+        "address": "Munich, Bavaria",
+        "property_type": "APARTMENTBUY"
+    }
+    
+    Property types:
+    - APARTMENTBUY
+    - HOUSEBUY
+    - LANDBUY
+    - GARAGEBUY
+    - OFFICEBUY
+    """
+    try:
+        result = calculate_property_valuation_endpoint(
+            current_price=request.current_price,
+            address=request.address,
+            property_type=request.property_type
+        )
+        
+        return result
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Property valuation error: {str(e)}")
 
 def generate_cost_graph(pricing_result):
     analyses = pricing_result.get("analyses") if pricing_result else None

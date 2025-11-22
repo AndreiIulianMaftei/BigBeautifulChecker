@@ -1,11 +1,11 @@
 {
   "status": "success",
-  "timestamp": "2025-11-22T02:09:48.614658",
+  "timestamp": "2025-11-22T11:04:27.897211",
   "summary": {
     "total_items_analyzed": 3,
     "total_items_requested": 3,
     "failed_items_count": 0,
-    "grand_total_10year_cost_chf": 36357.09
+    "grand_total_10year_cost_chf": 9581.87
   },
   "analyses": [
     {
@@ -16,7 +16,7 @@
         "price_type": "Replacement",
         "price_chf": 15000,
         "unit": "per piece",
-        "reasoning": "Boiler lifespan is already provided. Price type is estimated as 'Replacement' since a boiler is typically replaced after its lifespan. The price is estimated at 15000 CHF per piece, a reasonable average for a new boiler in Switzerland including installation, but depending heavily on size and complexity.",
+        "reasoning": "Boilers are typically priced for full replacement. 15000 CHF is a reasonable estimate for a standard residential boiler replacement in Switzerland, considering installation costs. Repair costs can vary widely, but replacement is the most common major expense considered for lifespan planning. Price varies with size, efficiency and brand.",
         "Category": "Heating / Ventilation / Climate",
         "Item": "Boiler"
       },
@@ -27,21 +27,16 @@
         "additional_maintenance": [
           {
             "year": 3,
-            "type": "Inspection and minor repairs",
+            "type": "Major Service and Inspection",
+            "cost": 2500
+          },
+          {
+            "year": 7,
+            "type": "Preventative Maintenance and Component Check",
             "cost": 1000
-          },
-          {
-            "year": 5,
-            "type": "Major component overhaul (e.g., burner replacement)",
-            "cost": 7500
-          },
-          {
-            "year": 10,
-            "type": "Replacement",
-            "cost": 18000
           }
         ],
-        "severity_impact": "A severity of 5/5 indicates critical damage. Immediate repair is necessary to prevent further damage and potential system failure. This high severity significantly shortens the lifespan and increases the likelihood of needing multiple repairs and additional maintenance to keep the boiler operational until a full replacement is feasible. The estimated cost reflects the urgency and the scope of the repair required."
+        "severity_impact": "A severity level of 5 indicates critical or urgent damage. This necessitates immediate repair to prevent further degradation and potential system failure. The repair is required within the next year to address the immediate issues and extend the boiler's lifespan. The additional maintenance is planned to mitigate the initial damage's long-term effects and proactively prevent future breakdowns. Due to the high severity, more frequent and costly maintenance is anticipated compared to a boiler with lower severity damage. The initial repair cost is also significantly higher than routine maintenance due to the urgent nature and likely extensive repairs required."
       },
       "ten_year_projection": {
         "yearly_costs": [
@@ -61,63 +56,63 @@
           },
           {
             "year": 3,
-            "scheduled_work": "Inspection and minor repairs",
-            "cost": 1040.4,
-            "cumulative_cost": 6040.4,
-            "notes": "Scheduled inspection and minor repairs with 2.0% inflation"
+            "scheduled_work": "Major Service and Inspection",
+            "cost": 2601.0,
+            "cumulative_cost": 7601.0,
+            "notes": "Scheduled major service and inspection with 2.0% inflation"
           },
           {
             "year": 4,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 6040.4,
+            "cumulative_cost": 7601.0,
             "notes": "No scheduled work"
           },
           {
             "year": 5,
-            "scheduled_work": "Major component overhaul (e.g., burner replacement)",
-            "cost": 8118.24,
-            "cumulative_cost": 14158.64,
-            "notes": "Scheduled major component overhaul (e.g., burner replacement) with 2.0% inflation"
+            "scheduled_work": "none",
+            "cost": 0,
+            "cumulative_cost": 7601.0,
+            "notes": "No scheduled work"
           },
           {
             "year": 6,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 14158.64,
+            "cumulative_cost": 7601.0,
             "notes": "No scheduled work"
           },
           {
             "year": 7,
-            "scheduled_work": "none",
-            "cost": 0,
-            "cumulative_cost": 14158.64,
-            "notes": "No scheduled work"
+            "scheduled_work": "Preventative Maintenance and Component Check",
+            "cost": 1126.16,
+            "cumulative_cost": 8727.16,
+            "notes": "Scheduled preventative maintenance and component check with 2.0% inflation"
           },
           {
             "year": 8,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 14158.64,
+            "cumulative_cost": 8727.16,
             "notes": "No scheduled work"
           },
           {
             "year": 9,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 14158.64,
+            "cumulative_cost": 8727.16,
             "notes": "No scheduled work"
           },
           {
             "year": 10,
-            "scheduled_work": "Replacement",
-            "cost": 21511.67,
-            "cumulative_cost": 35670.31,
-            "notes": "Scheduled replacement with 2.0% inflation"
+            "scheduled_work": "none",
+            "cost": 0,
+            "cumulative_cost": 8727.16,
+            "notes": "No scheduled work"
           }
         ],
-        "total_10year_cost": 35670.31,
-        "summary": "Total of 4 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
+        "total_10year_cost": 8727.16,
+        "summary": "Total of 3 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
       }
     },
     {
@@ -138,11 +133,11 @@
         "additional_maintenance": [
           {
             "year": 2,
-            "type": "Visual Inspection and Calibration",
+            "type": "Visual Inspection and Calibration Check",
             "cost": 50
           }
         ],
-        "severity_impact": "A severity of 3 suggests a developing issue. While replacement isn't immediately necessary, proactive repair and maintenance are crucial. The timeline is accelerated due to the severity; a lower severity might have allowed for a longer period before intervention. The cost is influenced by addressing the issue before it escalates to a full replacement."
+        "severity_impact": "A severity of 3 suggests a moderate issue that, if left unaddressed, could escalate to a more significant problem. While a full replacement isn't immediately necessary, proactive repair and additional maintenance are required to prevent further deterioration and potential system inefficiencies. The timeline is accelerated compared to a low-severity issue, as the existing damage is likely to worsen over time. The cost is lower than a full replacement but higher than basic maintenance due to the needed repair."
       },
       "ten_year_projection": {
         "yearly_costs": [
@@ -155,10 +150,10 @@
           },
           {
             "year": 2,
-            "scheduled_work": "Visual Inspection and Calibration",
+            "scheduled_work": "Visual Inspection and Calibration Check",
             "cost": 51.0,
             "cumulative_cost": 51.0,
-            "notes": "Scheduled visual inspection and calibration with 2.0% inflation"
+            "notes": "Scheduled visual inspection and calibration check with 2.0% inflation"
           },
           {
             "year": 3,
@@ -235,20 +230,15 @@
       "repair_schedule": {
         "next_repair_year": 8,
         "repair_type": "Maintenance",
-        "estimated_cost": 250,
+        "estimated_cost": 350,
         "additional_maintenance": [
           {
             "year": 4,
-            "type": "Filter and coil cleaning",
-            "cost": 150
-          },
-          {
-            "year": 12,
-            "type": "Replacement",
-            "cost": 1300
+            "type": "Filter and Coil Cleaning",
+            "cost": 200
           }
         ],
-        "severity_impact": "A damage severity of 1/5 indicates minimal damage. This suggests that regular maintenance can extend the lifespan closer to the normal lifespan of 15 years. Replacing the units prematurely is unnecessary. This maintenance will incur a smaller cost and can be planned further out, without requiring emergency repair."
+        "severity_impact": "A severity level of 1 indicates minor damage, suggesting regular maintenance can likely extend the lifespan and delay a full replacement. While a major repair or replacement isn't immediately necessary, neglecting minor issues can lead to accelerated degradation and increased future costs. Regular maintenance helps mitigate the impact of the damage."
       },
       "ten_year_projection": {
         "yearly_costs": [
@@ -275,55 +265,55 @@
           },
           {
             "year": 4,
-            "scheduled_work": "Filter and coil cleaning",
-            "cost": 159.18,
-            "cumulative_cost": 159.18,
+            "scheduled_work": "Filter and Coil Cleaning",
+            "cost": 212.24,
+            "cumulative_cost": 212.24,
             "notes": "Scheduled filter and coil cleaning with 2.0% inflation"
           },
           {
             "year": 5,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 159.18,
+            "cumulative_cost": 212.24,
             "notes": "No scheduled work"
           },
           {
             "year": 6,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 159.18,
+            "cumulative_cost": 212.24,
             "notes": "No scheduled work"
           },
           {
             "year": 7,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 159.18,
+            "cumulative_cost": 212.24,
             "notes": "No scheduled work"
           },
           {
             "year": 8,
             "scheduled_work": "Maintenance",
-            "cost": 287.17,
-            "cumulative_cost": 446.35,
+            "cost": 402.04,
+            "cumulative_cost": 614.28,
             "notes": "Scheduled maintenance with 2.0% inflation"
           },
           {
             "year": 9,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 446.35,
+            "cumulative_cost": 614.28,
             "notes": "No scheduled work"
           },
           {
             "year": 10,
             "scheduled_work": "none",
             "cost": 0,
-            "cumulative_cost": 446.35,
+            "cumulative_cost": 614.28,
             "notes": "No scheduled work"
           }
         ],
-        "total_10year_cost": 446.35,
+        "total_10year_cost": 614.28,
         "summary": "Total of 2 maintenance/repair event(s) scheduled over 10 years. Costs include 2.0% annual inflation adjustment."
       }
     }

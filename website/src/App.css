@@ -404,7 +404,7 @@
 .result-card__image {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 140px;
   margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;
@@ -428,7 +428,8 @@
 .processed-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   display: block;
 }
 
@@ -914,16 +915,22 @@
 
 .detail-hero {
   width: 100%;
-  max-height: 40vh;
+  padding: 16px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .detail-hero img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
   display: block;
+  border-radius: 12px;
 }
 
 .detail-body {
@@ -1447,5 +1454,3 @@
     font-size: 12px;
   }
 }
-
-

@@ -130,6 +130,41 @@ def get_bbox(path_to_image: str, destination_path: str):
     image = cv2.imread(path_to_image)
     height, width = image.shape[:2]
 
+    def normalize_box(box):
+        """
+        Convert bounding boxes that may be normalized to 1/100/1000 ranges or already in pixels.
+        Returns clamped integer pixel coordinates (x_min, y_min, x_max, y_max).
+        """
+        try:
+            y0, x0, y1, x1 = [float(v) for v in box]
+        except Exception:
+            return None
+
+        max_val = max(abs(y0), abs(x0), abs(y1), abs(x1))
+        if max_val <= 1.5:
+            norm = 1.0
+        elif max_val <= 100:
+            norm = 100.0
+        elif max_val <= 1000:
+            norm = 1000.0
+        else:
+            norm = None  # assume already in pixel space
+
+        if norm:
+            y0 = y0 / norm * height
+            y1 = y1 / norm * height
+            x0 = x0 / norm * width
+            x1 = x1 / norm * width
+
+        x_min = int(max(0, min(width - 1, min(x0, x1))))
+        y_min = int(max(0, min(height - 1, min(y0, y1))))
+        x_max = int(max(0, min(width - 1, max(x0, x1))))
+        y_max = int(max(0, min(height - 1, max(y0, y1))))
+
+        if x_max <= x_min or y_max <= y_min:
+            return None
+        return x_min, y_min, x_max, y_max
+
     # Stage 1: Detect category
     print("\n=== Stage 1: Detecting image category ===")
     detected_category = detect_image_category(path_to_image)
@@ -153,12 +188,10 @@ def get_bbox(path_to_image: str, destination_path: str):
         return {}
 
     for item in response_json:
-        y0, x0, y1, x1 = item["box_2d"]
-
-        x_min = int(x0 / 1000 * width)
-        y_min = int(y0 / 1000 * height)
-        x_max = int(x1 / 1000 * width)
-        y_max = int(y1 / 1000 * height)
+        coords = normalize_box(item.get("box_2d"))
+        if not coords:
+            continue
+        x_min, y_min, x_max, y_max = coords
 
         label = item["label"]
 
@@ -180,4 +213,3 @@ if __name__=="__main__":
     test_image_path = pathlib.Path(CODEBASE_DIR / "sample_images/brokenwall.png")
     destination_path = pathlib.Path(CODEBASE_DIR / "sample_images/bbox_brokenwall.png")
     get_bbox(test_image_path, destination_path)
-

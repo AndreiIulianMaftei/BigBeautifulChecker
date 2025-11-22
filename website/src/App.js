@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -1243,74 +1243,6 @@ function App() {
                   </motion.div>
                 )}
 
-                {/* Composed Chart with Line and Bar */}
-                <motion.div 
-                  className="chart-section"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <h3>Cost Acceleration Analysis</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <ComposedChart 
-                      data={horizonModalData.yearlyBreakdown.map((item, idx) => ({
-                        year: item.year,
-                        annual: item.totalCost,
-                        cumulative: horizonModalData.yearlyBreakdown
-                          .slice(0, idx + 1)
-                          .reduce((sum, y) => sum + y.totalCost, 0),
-                        average: horizonModalData.yearlyBreakdown
-                          .slice(0, idx + 1)
-                          .reduce((sum, y) => sum + y.totalCost, 0) / (idx + 1)
-                      }))}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis 
-                        dataKey="year" 
-                        stroke="#6b7280"
-                        label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
-                      />
-                      <YAxis 
-                        stroke="#6b7280"
-                        tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
-                      />
-                      <Tooltip 
-                        formatter={(value) => formatCurrency(value)}
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                      <Legend />
-                      <Bar 
-                        dataKey="annual" 
-                        fill="#f97316" 
-                        radius={[8, 8, 0, 0]}
-                        name="Annual Cost"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="average" 
-                        stroke="#fb923c" 
-                        strokeWidth={3}
-                        name="Average Cost"
-                        dot={{ fill: '#fb923c', r: 5 }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="cumulative" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        name="Cumulative"
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </motion.div>
-
                 {/* System-wise breakdown list */}
                 <motion.div 
                   className="system-breakdown-list"
@@ -1526,52 +1458,6 @@ function App() {
                   </ResponsiveContainer>
                 </motion.div>
 
-                {/* Instance Comparison Pie Chart */}
-                {systemModalData.instanceBreakdown.length > 1 && (
-                  <motion.div 
-                    className="chart-section"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <h3>Cost Distribution by Location</h3>
-                    <ResponsiveContainer width="100%" height={350}>
-                      <PieChart>
-                        <Pie
-                          data={systemModalData.instanceBreakdown}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ imageName, total }) => `${imageName.substring(0, 20)}: ${formatCurrency(total)}`}
-                          outerRadius={120}
-                          dataKey="total"
-                          animationDuration={800}
-                        >
-                          {systemModalData.instanceBreakdown.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={[
-                                '#10b981', '#f97316', '#059669', '#ea580c', 
-                                '#14b8a6', '#fb923c', '#0d9488', '#fdba74'
-                              ][index % 8]} 
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => formatCurrency(value)}
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                          }}
-                        />
-                        <Legend verticalAlign="bottom" height={36} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </motion.div>
-                )}
-
                 {/* Year-over-year comparison line chart */}
                 <motion.div 
                   className="chart-section"
@@ -1618,92 +1504,7 @@ function App() {
                   </ResponsiveContainer>
                 </motion.div>
 
-                {/* Detailed Instance Breakdown */}
-                <motion.div 
-                  className="system-breakdown-list"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <h3>Detailed Breakdown by Location</h3>
-                  <div className="system-breakdown-grid">
-                    {systemModalData.instanceBreakdown.map((instance, idx) => (
-                      <motion.div 
-                        key={`${instance.imageName}-${idx}`}
-                        className="system-breakdown-item"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 + idx * 0.05 }}
-                      >
-                        <div className="system-breakdown-header">
-                          <div>
-                            <span className="system-breakdown-name">{instance.imageName}</span>
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                              <span className={`severity-pill severity-${instance.severity}`} style={{ fontSize: '10px', padding: '4px 8px' }}>
-                                Severity {instance.severity}/5
-                              </span>
-                              <span style={{ fontSize: '11px', color: '#6b7280' }}>{instance.category}</span>
-                            </div>
-                          </div>
-                          <span className="system-breakdown-value">{formatCurrency(instance.total)}</span>
-                        </div>
-                        <div className="system-breakdown-bar">
-                          <motion.div 
-                            className="system-breakdown-fill"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(instance.total / systemModalData.totalCost) * 100}%` }}
-                            transition={{ duration: 0.8, delay: 0.5 + idx * 0.05 }}
-                            style={{ background: '#f97316' }}
-                          />
-                        </div>
-                        <span className="system-breakdown-percent">
-                          {((instance.total / systemModalData.totalCost) * 100).toFixed(1)}% of total system cost
-                        </span>
-                        
-                        {/* Mini timeline for this instance */}
-                        <div style={{ marginTop: '12px', padding: '12px', background: 'white', borderRadius: '8px' }}>
-                          <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: '#6b7280' }}>
-                            COST TIMELINE
-                          </div>
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px' }}>
-                            {instance.yearlySeries.map((yearData, yIdx) => {
-                              const maxCost = Math.max(...instance.yearlySeries.map(y => y.cost));
-                              const height = maxCost > 0 ? (yearData.cost / maxCost) * 100 : 0;
-                              return (
-                                <div 
-                                  key={yIdx}
-                                  style={{
-                                    flex: 1,
-                                    height: '100%',
-                                    display: 'flex',
-                                    alignItems: 'flex-end'
-                                  }}
-                                  title={`Year ${yearData.year}: ${formatCurrency(yearData.cost)}\n${yearData.scheduled_work}`}
-                                >
-                                  <motion.div
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${height}%` }}
-                                    transition={{ duration: 0.6, delay: 0.6 + idx * 0.05 + yIdx * 0.02 }}
-                                    style={{
-                                      width: '100%',
-                                      background: yearData.cost > 0 ? '#f97316' : '#e5e7eb',
-                                      borderRadius: '2px 2px 0 0',
-                                      minHeight: yearData.cost > 0 ? '3px' : '1px'
-                                    }}
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '9px', color: '#9ca3af' }}>
-                            <span>Y1</span>
-                            <span>Y15</span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
+                
               </div>
             </motion.div>
           </motion.div>

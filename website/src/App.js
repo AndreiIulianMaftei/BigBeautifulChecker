@@ -8,7 +8,7 @@ const COST_HORIZONS = [5, 10, 15];
 const formatCurrency = (value) => {
   const formatter = new Intl.NumberFormat('de-CH', {
     style: 'currency',
-    currency: 'CHF',
+    currency: 'EUR',
     maximumFractionDigits: 0,
   });
   return formatter.format(Math.max(0, value || 0));
@@ -162,7 +162,7 @@ function App() {
     const layout = {
       margin: { l: 50, r: 20, t: 10, b: 40 },
       xaxis: { title: 'Year', dtick: 1, range: [1, 15] },
-      yaxis: { title: 'Cumulative cost (CHF)', rangemode: 'tozero' },
+      yaxis: { title: 'Cumulative cost (EUR)', rangemode: 'tozero' },
       showlegend: true,
       legend: { orientation: 'h', y: -0.2 },
       hovermode: 'x unified',
@@ -372,7 +372,7 @@ function App() {
               />
             </div>
             <div className="property-field">
-              <label htmlFor="property-price">Purchase price (CHF)</label>
+              <label htmlFor="property-price">Purchase price (EUR)</label>
               <input
                 id="property-price"
                 type="number"

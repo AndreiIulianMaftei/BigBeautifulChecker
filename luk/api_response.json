@@ -16,7 +16,7 @@
         "price_type": "Replacement",
         "price_chf": 15000,
         "unit": "per piece",
-        "reasoning": "Boilers are typically priced for full replacement. 15000 CHF is a reasonable estimate for a standard residential boiler replacement in Switzerland, considering installation costs. Repair costs can vary widely, but replacement is the most common major expense considered for lifespan planning. Price varies with size, efficiency and brand.",
+        "reasoning": "Boilers are typically priced for full replacement. 15000 EUR is a reasonable estimate for a standard residential boiler replacement in Switzerland, considering installation costs. Repair costs can vary widely, but replacement is the most common major expense considered for lifespan planning. Price varies with size, efficiency and brand.",
         "Category": "Heating / Ventilation / Climate",
         "Item": "Boiler"
       },

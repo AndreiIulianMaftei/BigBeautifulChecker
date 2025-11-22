@@ -151,11 +151,11 @@ if __name__ == "__main__":
     summary = result['valuation']['10_year_summary']
     print(f"\n{'='*80}\nPROPERTY VALUATION TEST\n{'='*80}")
     print(f"Address: {result['input']['address']}")
-    print(f"Price: {result['input']['current_price']:,.2f} CHF")
+    print(f"Price: {result['input']['current_price']:,.2f} EUR")
     print(f"Appreciation Rate: {result['market_data']['appreciation_rate']*100:.2f}%")
     print(f"\n10-Year Summary:")
-    print(f"  Final Value: {summary['final_property_value']:,.2f} CHF")
-    print(f"  Total Return: {summary['total_return']:,.2f} CHF")
+    print(f"  Final Value: {summary['final_property_value']:,.2f} EUR")
+    print(f"  Total Return: {summary['total_return']:,.2f} EUR")
     print(f"  ROI: {summary['total_roi_percentage']:.2f}%")
     
     with open("property_valuation_test.json", "w") as f:

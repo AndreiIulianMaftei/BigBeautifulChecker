@@ -27,7 +27,7 @@ Category: {partial_data.get('Category', 'Unknown')}
 Item: {partial_data.get('Item/Subitem', 'Unknown')}
 Lifespan: {partial_data.get('Lifespan (Years)', 'Missing')} years
 Price Type: {partial_data.get('Price Type', 'Missing')}
-Price: {partial_data.get('Price (CHF)', 'Missing')} CHF
+Price: {partial_data.get('Price (EUR)', 'Missing')} EUR
 Unit: {partial_data.get('Unit', 'Missing')}
 
 Please provide CONSERVATIVE estimates for any missing data (marked as '-' or 'Missing').
@@ -39,7 +39,7 @@ Return ONLY a valid JSON object with this structure:
 {{
     "lifespan_years": <number or original if present>,
     "price_type": "<Replacement/Repair/New Coat/etc>",
-    "price_chf": <number>,
+    "price_EUR": <number>,
     "unit": "<per piece/per m²/per m/etc>",
     "reasoning": "<brief explanation of estimates>"
 }}
@@ -53,7 +53,7 @@ You are an expert maintenance scheduler for building components.
 Item: {damage_item}
 Category: {complete_data.get('Category', 'Unknown')}
 Normal Lifespan: {complete_data.get('lifespan_years')} years
-Base Cost: {complete_data.get('price_chf')} CHF {complete_data.get('unit')}
+Base Cost: {complete_data.get('price_EUR')} EUR {complete_data.get('unit')}
 Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/urgent)
 
 Based on the severity level, predict:
@@ -72,9 +72,9 @@ Return ONLY a valid JSON object:
 {{
     "next_repair_year": <year from now, 0-10>,
     "repair_type": "<Maintenance/Repair/Replacement>",
-    "estimated_cost": <cost in CHF>,
+    "estimated_cost": <cost in EUR>,
     "additional_maintenance": [
-        {{"year": <0-10>, "type": "<description>", "cost": <CHF>}}
+        {{"year": <0-10>, "type": "<description>", "cost": <EUR>}}
     ],
     "severity_impact": "<explanation>"
 }}
@@ -156,7 +156,7 @@ async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
             return json.dumps({
                 "lifespan_years": 20,
                 "price_type": "Replacement",
-                "price_chf": 500,
+                "price_EUR": 500,
                 "unit": "per piece",
                 "reasoning": "Mock data for testing"
             })
@@ -205,8 +205,8 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
     
     # Step 2: Complete missing data with LLM
     print("\nStep 2: Completing missing data with LLM...")
-    has_missing = (item_data['Price (CHF)'] == '-' or 
-                   pd.isna(item_data['Price (CHF)']) or
+    has_missing = (item_data['Price (EUR)'] == '-' or 
+                   pd.isna(item_data['Price (EUR)']) or
                    item_data['Price Type'] == '-')
     
     if has_missing:
@@ -215,17 +215,17 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
         complete_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
         complete_data['Category'] = item_data['Category']
         complete_data['Item'] = item_data['Item/Subitem']
-        print(f"✅ Completed data: {complete_data['price_chf']} CHF {complete_data['unit']}")
+        print(f"✅ Completed data: {complete_data['price_EUR']} EUR {complete_data['unit']}")
     else:
         complete_data = {
             'Category': item_data['Category'],
             'Item': item_data['Item/Subitem'],
             'lifespan_years': item_data['Lifespan (Years)'],
             'price_type': item_data['Price Type'],
-            'price_chf': item_data['Price (CHF)'],
+            'price_EUR': item_data['Price (EUR)'],
             'unit': item_data['Unit']
         }
-        print(f"✅ Data already complete: {complete_data['price_chf']} CHF {complete_data['unit']}")
+        print(f"✅ Data already complete: {complete_data['price_EUR']} EUR {complete_data['unit']}")
     
     # Step 3: Predict repair schedule
     print("\nStep 3: Predicting repair schedule based on severity...")
@@ -234,12 +234,12 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
     repair_schedule = json.loads(response.strip().replace('```json', '').replace('```', ''))
     print(f"✅ Next repair in year: {repair_schedule['next_repair_year']}")
     print(f"   Type: {repair_schedule['repair_type']}")
-    print(f"   Estimated cost: {repair_schedule['estimated_cost']} CHF")
+    print(f"   Estimated cost: {repair_schedule['estimated_cost']} EUR")
     
     # Step 4: Calculate 10-year cost table numerically
     print("\nStep 4: Calculating 10-year cost projection table...")
     ten_year_table = calculate_10year_projection(damage_item, repair_schedule, complete_data)
-    print(f"✅ 10-year total cost: {ten_year_table['total_10year_cost']} CHF")
+    print(f"✅ 10-year total cost: {ten_year_table['total_10year_cost']} EUR")
     
     return {
         'damage_item': damage_item,
@@ -259,14 +259,14 @@ def print_cost_table(analysis_result: Dict):
     print(f"{'='*80}")
     
     table = analysis_result['ten_year_projection']['yearly_costs']
-    print(f"\n{'Year':<6} {'Scheduled Work':<30} {'Cost (CHF)':<12} {'Cumulative (CHF)':<15} {'Notes'}")
+    print(f"\n{'Year':<6} {'Scheduled Work':<30} {'Cost (EUR)':<12} {'Cumulative (EUR)':<15} {'Notes'}")
     print(f"{'-'*80}")
     
     for row in table:
         print(f"{row['year']:<6} {row['scheduled_work']:<30} {row['cost']:<12.2f} {row['cumulative_cost']:<15.2f} {row['notes']}")
     
     print(f"{'-'*80}")
-    print(f"Total 10-Year Cost: {analysis_result['ten_year_projection']['total_10year_cost']} CHF")
+    print(f"Total 10-Year Cost: {analysis_result['ten_year_projection']['total_10year_cost']} EUR")
     print(f"\nSummary: {analysis_result['ten_year_projection']['summary']}")
     print(f"{'='*80}\n")
 
@@ -376,7 +376,7 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
             "total_items_analyzed": len(successful_results),
             "total_items_requested": len(damage_items),
             "failed_items_count": len(failed_items),
-            "grand_total_10year_cost_chf": round(grand_total, 2)
+            "grand_total_10year_cost_EUR": round(grand_total, 2)
         },
         "analyses": successful_results,
         "failed_items": failed_items if failed_items else None
@@ -425,7 +425,7 @@ if __name__ == "__main__":
     print(f"{'='*80}")
     print(f"Status: {response['status']}")
     print(f"Items analyzed: {response['summary']['total_items_analyzed']}/{response['summary']['total_items_requested']}")
-    print(f"Grand Total (10 years): {response['summary']['grand_total_10year_cost_chf']} CHF")
+    print(f"Grand Total (10 years): {response['summary']['grand_total_10year_cost_EUR']} EUR")
     
     if response['failed_items']:
         print(f"\nWARNING: Failed items: {response['summary']['failed_items_count']}")
@@ -437,7 +437,7 @@ if __name__ == "__main__":
     print(f"{'='*80}")
     for analysis in response['analyses']:
         total = analysis['ten_year_projection']['total_10year_cost']
-        print(f"   - {analysis['damage_item']}: {total} CHF")
+        print(f"   - {analysis['damage_item']}: {total} EUR")
     
     # Save complete response
     save_analysis_to_file(response, "api_response.json")
@@ -456,7 +456,7 @@ if __name__ == "__main__":
             "total_items_analyzed": 3,
             "total_items_requested": 3,
             "failed_items_count": 0,
-            "grand_total_10year_cost_chf": 1200.50
+            "grand_total_10year_cost_EUR": 1200.50
         },
         "analyses": [
             {
@@ -467,7 +467,7 @@ if __name__ == "__main__":
                     "Item": "Boiler",
                     "lifespan_years": 20,
                     "price_type": "Replacement",
-                    "price_chf": 5000,
+                    "price_EUR": 5000,
                     "unit": "per piece"
                 },
                 "repair_schedule": {

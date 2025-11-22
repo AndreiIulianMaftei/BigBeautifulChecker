@@ -8,7 +8,7 @@
         "price_type": "Replacement",
         "price_chf": 15000,
         "unit": "per piece",
-        "reasoning": "Boiler replacement is a major expense. CHF 15,000 is a reasonable average price for a new boiler including installation in Switzerland. Lifespan is already specified. Unit is 'per piece' because we're replacing the entire boiler.",
+        "reasoning": "Boiler replacement is a major expense. EUR 15,000 is a reasonable average price for a new boiler including installation in Switzerland. Lifespan is already specified. Unit is 'per piece' because we're replacing the entire boiler.",
         "Category": "Heating / Ventilation / Climate",
         "Item": "Boiler"
       },

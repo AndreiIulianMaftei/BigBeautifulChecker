@@ -50,7 +50,7 @@ You are an expert maintenance scheduler for building components.
 Item: {damage_item}
 Category: {complete_data.get('Category', 'Unknown')}
 Normal Lifespan: {complete_data.get('lifespan_years')} years
-Base Cost: {complete_data.get('price_chf')} CHF {complete_data.get('unit')}
+Base Cost: {complete_data.get('price_chf')} EUR {complete_data.get('unit')}
 Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/urgent)
 
 Based on the severity level, predict:
@@ -203,7 +203,7 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
         complete_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
         complete_data['Category'] = item_data['Category']
         complete_data['Item'] = item_data['Item/Subitem']
-        print(f"✅ Completed data: {complete_data['price_chf']} CHF {complete_data['unit']}")
+        print(f"✅ Completed data: {complete_data['price_chf']} EUR {complete_data['unit']}")
     else:
         complete_data = {
             'Category': item_data['Category'],
@@ -213,7 +213,7 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
             'price_chf': item_data['Price (CHF)'],
             'unit': item_data['Unit']
         }
-        print(f"✅ Data already complete: {complete_data['price_chf']} CHF {complete_data['unit']}")
+        print(f"✅ Data already complete: {complete_data['price_chf']} EUR {complete_data['unit']}")
     
     # Step 3: Predict repair schedule
     print("\nStep 3: Predicting repair schedule based on severity...")

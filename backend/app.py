@@ -307,7 +307,7 @@ async def valuation_report(request: CombinedValuationRequest):
         }
 
         if repair_summary and repair_summary.get("analyses"):
-            total_repairs = repair_summary["summary"]["grand_total_10year_cost_chf"]
+            total_repairs = repair_summary["summary"]["grand_total_10year_cost_EUR"]
             final_value = valuation["valuation"]["10_year_summary"]["final_property_value"]
             combined["insights"] = {
                 "net_projected_value": round(final_value - total_repairs, 2),

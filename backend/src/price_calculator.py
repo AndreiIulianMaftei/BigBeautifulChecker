@@ -19,7 +19,54 @@ def find_damage_in_csv(df: pd.DataFrame, damage_item: str) -> pd.DataFrame:
 
 def complete_missing_data_prompt(damage_item: str, partial_data: Dict) -> str:
     """Generate prompt to complete missing data using LLM"""
-    return f"""
+    is_completely_unknown = partial_data.get('Category') == 'Unknown'
+    
+    if is_completely_unknown:
+        # Special prompt for completely unknown damage types
+        return f"""
+You are an expert in building maintenance and repair cost estimation.
+
+The damage type "{damage_item}" was NOT found in the standard building components database.
+This appears to be a damage description rather than a standard building component.
+
+Please analyze this damage type and provide COMPREHENSIVE cost estimates:
+
+TASK:
+1. Identify what building category this damage likely belongs to
+2. Determine the affected component/system
+3. Provide realistic repair/replacement cost estimates
+
+IMPORTANT PRICING GUIDELINES:
+- For structural damage (walls, floors, ceilings): Base costs start at 150-300 EUR/m² MINIMUM
+- For destroyed/severely damaged walls: 250-500 EUR/m² depending on material and complexity
+- Include ALL associated costs: materials, labor (80-120 EUR/hour), disposal, permits, hidden damages
+- Add 25-35% markup for realistic project costs (overhead, profit, contingencies)
+- Swiss/EU labor rates are HIGH - factor this in
+- Structural work often reveals additional problems - plan for 20-30% cost overruns
+
+DAMAGE TYPE SPECIFIC ESTIMATES:
+- Cracks: Consider if structural (expensive) or cosmetic (moderate)
+- Water damage/leaks: Include source repair + affected areas + mold remediation
+- Mold: Professional remediation 50-150 EUR/m² + source fix
+- Electrical issues: Licensed electrician 80-120 EUR/hour + materials + permits
+- Broken windows: 300-1500 EUR per window depending on size/type
+- Chipped paint: 30-60 EUR/m² for repainting
+- Rust: Depends on component - assess replacement needs
+- Sagging roof: 150-400 EUR/m² for structural repairs
+
+Return ONLY a valid JSON object with this structure:
+{{
+    "lifespan_years": <estimated years before next major work needed>,
+    "price_type": "<Replacement/Repair/Remediation/etc>",
+    "price_EUR": <realistic base cost - err on higher side>,
+    "unit": "<per piece/per m²/per m/per hour/etc>",
+    "category": "<best guess of building category>",
+    "reasoning": "<detailed explanation of your estimates and assumptions>"
+}}
+"""
+    else:
+        # Original prompt for items found in database but with missing data
+        return f"""
 You are an expert in building maintenance and repair cost estimation.
 
 Given this partial data about "{damage_item}":
@@ -30,16 +77,24 @@ Price Type: {partial_data.get('Price Type', 'Missing')}
 Price: {partial_data.get('Price (EUR)', 'Missing')} EUR
 Unit: {partial_data.get('Unit', 'Missing')}
 
-Please provide CONSERVATIVE estimates for any missing data (marked as '-' or 'Missing').
-Consider industry standards for Swiss building maintenance.
-ERR ON THE SIDE OF HIGHER COSTS to account for unforeseen complications and price variations.
-Add 15-20% buffer to typical costs for realistic project planning.
+Please provide REALISTIC and COMPREHENSIVE estimates for any missing data (marked as '-' or 'Missing').
+Consider industry standards for Swiss/European building maintenance.
+
+IMPORTANT PRICING GUIDELINES:
+- For structural damage (walls, floors, ceilings): Base costs start at 150-300 EUR/m² MINIMUM
+- For destroyed/severely damaged walls: 250-500 EUR/m² depending on material and complexity
+- Include ALL associated costs: materials, labor (80-120 EUR/hour), disposal, permits, hidden damages
+- Add 25-35% markup for realistic project costs (overhead, profit, contingencies)
+- Swiss/EU labor rates are HIGH - factor this in
+- Structural work often reveals additional problems - plan for 20-30% cost overruns
+
+For "destroyed" or "severe" damage, multiply typical repair costs by 1.5-2x.
 
 Return ONLY a valid JSON object with this structure:
 {{
     "lifespan_years": <number or original if present>,
     "price_type": "<Replacement/Repair/New Coat/etc>",
-    "price_EUR": <number>,
+    "price_EUR": <number - be realistic, not cheap>,
     "unit": "<per piece/per m²/per m/etc>",
     "reasoning": "<brief explanation of estimates>"
 }}
@@ -54,36 +109,58 @@ Item: {damage_item}
 Category: {complete_data.get('Category', 'Unknown')}
 Normal Lifespan: {complete_data.get('lifespan_years')} years
 Base Cost: {complete_data.get('price_EUR')} EUR {complete_data.get('unit')}
-Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/urgent)
+Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/destroyed)
 
-Based on the severity level, predict:
-1. When the next repair/replacement will be needed (be CONSERVATIVE - higher severity means sooner action)
-2. Whether additional maintenance will be needed before replacement
-3. How severity affects the timeline and costs
+Based on the severity level, create a REALISTIC multi-year repair and maintenance plan:
 
-IMPORTANT:
-- For severity 4-5: Consider URGENT action (within 1-2 years) and add 20-30% cost buffer
-- For severity 3: Plan within 2-4 years with 15% cost buffer
-- For severity 1-2: Follow normal schedule but include preventive maintenance
-- Always include contingency costs (10-30% depending on severity)
-- Account for potential hidden damages that often accompany visible issues
+SEVERITY-BASED GUIDELINES:
+- Severity 5 (Critical/Destroyed): 
+  * IMMEDIATE action required (year 0-1)
+  * Multiply base cost by 1.8-2.5x for emergency repairs and associated damage
+  * Include temporary fixes, full repair/replacement, and follow-up inspections
+  * Add 30-40% contingency for hidden damage discovery
+  * Plan for 2-3 intervention points over 10 years
+
+- Severity 4 (Severe):
+  * Urgent action within 1-2 years
+  * Multiply base cost by 1.4-1.8x
+  * Add 20-30% contingency
+  * Plan for 2 major interventions over 10 years
+
+- Severity 3 (Moderate):
+  * Action within 2-4 years
+  * Use base cost + 15-25% buffer
+  * Plan for 1-2 interventions over 10 years
+
+- Severity 1-2 (Minor):
+  * Follow normal schedule
+  * Include regular maintenance every 3-4 years
+  * Use base cost with standard 10-15% buffer
+
+For ALL severity levels:
+- Include regular inspections (every 2-3 years): 150-300 EUR each
+- Account for preventive maintenance to avoid future severe damage
+- Consider that initial repairs may need follow-up work
+- Factor in that building components interact (wall damage affects electrical, plumbing, etc.)
 
 Return ONLY a valid JSON object:
 {{
     "next_repair_year": <year from now, 0-10>,
-    "repair_type": "<Maintenance/Repair/Replacement>",
-    "estimated_cost": <cost in EUR>,
+    "repair_type": "<Emergency Repair/Replacement/Major Repair/Maintenance>",
+    "estimated_cost": <cost in EUR - be realistic and severe>,
     "additional_maintenance": [
+        {{"year": <0-10>, "type": "<description>", "cost": <EUR>}},
         {{"year": <0-10>, "type": "<description>", "cost": <EUR>}}
+        // Include 2-4 additional events for realistic maintenance over 10 years
     ],
-    "severity_impact": "<explanation>"
+    "severity_impact": "<explanation of why these costs and timeline>"
 }}
 """
 
 def calculate_10year_projection(damage_item: str, repair_schedule: Dict, complete_data: Dict) -> Dict:
     """Calculate 10-year cost projection numerically based on repair schedule"""
-    INFLATION_RATE = 0.035  # 3.5% per year (conservative estimate for Swiss building costs)
-    CONTINGENCY_BUFFER = 0.15  # 15% contingency buffer for unforeseen costs
+    INFLATION_RATE = 0.045  # 4.5% per year (realistic for Swiss building/construction costs)
+    CONTINGENCY_BUFFER = 0.20  # 20% contingency buffer for unforeseen costs (realistic for construction)
     yearly_costs = []
     cumulative_cost = 0
     
@@ -195,27 +272,46 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
     matches = find_damage_in_csv(df, damage_item)
     
     if matches.empty:
-        print(f"❌ No matches found for '{damage_item}' in database")
-        return None
-    
-    print(f"✅ Found {len(matches)} match(es)")
-    item_data = matches.iloc[0].to_dict()
-    print(f"   Category: {item_data['Category']}")
-    print(f"   Item: {item_data['Item/Subitem']}")
+        print(f"⚠️  No matches found for '{damage_item}' in database")
+        print(f"📝 Using LLM to estimate all data for this damage type...")
+        # Create empty item_data structure for LLM to complete
+        item_data = {
+            'Category': 'Unknown',
+            'Item/Subitem': damage_item,
+            'Lifespan (Years)': '-',
+            'Price Type': '-',
+            'Price (EUR)': '-',
+            'Unit': '-'
+        }
+        has_missing = True  # Force LLM completion
+    else:
+        print(f"✅ Found {len(matches)} match(es)")
+        item_data = matches.iloc[0].to_dict()
+        print(f"   Category: {item_data['Category']}")
+        print(f"   Item: {item_data['Item/Subitem']}")
+        has_missing = (item_data['Price (EUR)'] == '-' or 
+                       pd.isna(item_data['Price (EUR)']) or
+                       item_data['Price Type'] == '-')
     
     # Step 2: Complete missing data with LLM
     print("\nStep 2: Completing missing data with LLM...")
-    has_missing = (item_data['Price (EUR)'] == '-' or 
-                   pd.isna(item_data['Price (EUR)']) or
-                   item_data['Price Type'] == '-')
     
     if has_missing:
         prompt = complete_missing_data_prompt(damage_item, item_data)
         response = await call_ai_model(prompt, use_mock)
         complete_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
-        complete_data['Category'] = item_data['Category']
+        
+        # Use category from LLM if it was unknown, otherwise use database category
+        if item_data.get('Category') == 'Unknown':
+            complete_data['Category'] = complete_data.get('category', 'Building Envelope')
+            print(f"✅ LLM estimated category: {complete_data['Category']}")
+        else:
+            complete_data['Category'] = item_data['Category']
+        
         complete_data['Item'] = item_data['Item/Subitem']
         print(f"✅ Completed data: {complete_data['price_EUR']} EUR {complete_data['unit']}")
+        if 'reasoning' in complete_data:
+            print(f"   Reasoning: {complete_data['reasoning']}")
     else:
         complete_data = {
             'Category': item_data['Category'],

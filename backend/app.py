@@ -2,15 +2,29 @@ import os
 import shutil
 import uvicorn
 import json
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from typing import List, Optional
+import asyncio
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Body
+from typing import List, Optional, Dict
+from pydantic import BaseModel
 
 try:
     from src.get_bbox import get_bbox
+    from src.price_calculator import analyze_damages_for_endpoint
 except ImportError:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
     from src.get_bbox import get_bbox
+    from src.price_calculator import analyze_damages_for_endpoint
+
+# Pydantic models for request/response
+class DamageItem(BaseModel):
+    item: str
+    severity: int  # 1-5
+
+class PriceRequest(BaseModel):
+    damage_items: List[DamageItem]
+    use_mock: bool = False
+    max_concurrent: int = 5
 
 app = FastAPI(title="Damage Detection Backend")
 
@@ -46,6 +60,125 @@ async def detect_damage(
 
         result_json = get_bbox(temp_input_path, destination_path, class_list)
         return result_json
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    
+    finally:
+        if temp_input_path and os.path.exists(temp_input_path):
+            # os.remove(temp_input_path)
+            pass
+
+@app.post("/calculate-price", summary="Calculate repair costs for detected damages")
+async def calculate_price(request: PriceRequest):
+    """
+    Calculate 10-year cost projections for detected damages.
+    
+    Request body:
+    {
+        "damage_items": [
+            {"item": "Boiler", "severity": 5},
+            {"item": "crack", "severity": 3}
+        ],
+        "use_mock": false,
+        "max_concurrent": 5
+    }
+    """
+    try:
+        # Convert Pydantic models to dicts
+        damage_items_list = [item.dict() for item in request.damage_items]
+        
+        # Call the price calculator
+        result = await analyze_damages_for_endpoint(
+            damage_items=damage_items_list,
+            use_mock=request.use_mock,
+            max_concurrent=request.max_concurrent
+        )
+        
+        return result
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Price calculation error: {str(e)}")
+
+@app.post("/detect-and-price", summary="Detect damages and calculate repair costs")
+async def detect_and_price(
+    file: UploadFile = File(...),
+    classes: Optional[str] = Form(
+        "[]", 
+        description="A JSON formatted string of classes, e.g., '[\"crack\", \"mold\"]'"
+    ),
+    use_mock_pricing: bool = Form(False, description="Use mock data for pricing (for testing)"),
+    max_concurrent: int = Form(5, description="Maximum concurrent API calls for pricing")
+):
+    """
+    Combined endpoint: Detect damages in image and calculate repair costs.
+    
+    Returns both detection results and 10-year cost projections.
+    """
+    temp_input_path = None
+    
+    try:
+        # Parse classes
+        try:
+            class_list = json.loads(classes)
+            if not isinstance(class_list, list):
+                raise ValueError("Classes must be a list")
+        except (json.JSONDecodeError, ValueError):
+            class_list = []
+
+        # Save uploaded file
+        temp_filename = f"{os.path.splitext(file.filename)[0]}_input{os.path.splitext(file.filename)[1]}"
+        temp_input_path = os.path.join(UPLOAD_DIR, temp_filename)
+        
+        with open(temp_input_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Run detection
+        output_filename = f"{os.path.splitext(file.filename)[0]}_annotated.png"
+        destination_path = os.path.join(RESULTS_DIR, output_filename)
+        detection_result = get_bbox(temp_input_path, destination_path, class_list)
+        
+        # Transform detection output to price calculator input
+        damage_items = []
+        if detection_result and "annotation" in detection_result:
+            for ann in detection_result["annotation"]:
+                # Extract severity (convert string to int if needed)
+                severity = ann.get("severity", 3)
+                if isinstance(severity, str):
+                    try:
+                        severity = int(severity)
+                    except ValueError:
+                        severity = 3  # default to medium severity
+                
+                # Clamp severity to 1-5 range
+                severity = max(1, min(5, severity))
+                
+                damage_items.append({
+                    "item": ann.get("label", "unknown"),
+                    "severity": severity
+                })
+        
+        # Calculate prices if damages were detected
+        pricing_result = None
+        if damage_items:
+            pricing_result = await analyze_damages_for_endpoint(
+                damage_items=damage_items,
+                use_mock=use_mock_pricing,
+                max_concurrent=max_concurrent
+            )
+        
+        # Combine results
+        combined_result = {
+            "detection": detection_result,
+            "pricing": pricing_result,
+            "annotated_image_path": destination_path
+        }
+        
+        return combined_result
 
     except Exception as e:
         import traceback

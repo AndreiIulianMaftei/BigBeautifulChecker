@@ -125,7 +125,7 @@ SEVERITY-BASED GUIDELINES:
   * Urgent action within 1-2 years
   * Multiply base cost by 1.4-1.8x
   * Add 20-30% contingency
-  * Plan for 2 major interventions over 10 years
+  * Plan for 1-2 major interventions over 10 years
 
 - Severity 3 (Moderate):
   * Action within 2-4 years
@@ -137,8 +137,15 @@ SEVERITY-BASED GUIDELINES:
   * Include regular maintenance every 3-4 years
   * Use base cost with standard 10-15% buffer
 
+IMPORTANT - Future Maintenance Schedule:
+- Be MODERATE and REALISTIC with future maintenance events
+- Don't over-schedule unnecessary inspections
+- For most items: 1-2 major interventions over 10 years is sufficient
+- Only include additional maintenance if truly necessary for the specific component
+- Inspections should be every 3-5 years, not more frequent unless critical systems
+- Cost for routine inspections: 150-300 EUR (don't add too many)
+
 For ALL severity levels:
-- Include regular inspections (every 2-3 years): 150-300 EUR each
 - Account for preventive maintenance to avoid future severe damage
 - Consider that initial repairs may need follow-up work
 - Factor in that building components interact (wall damage affects electrical, plumbing, etc.)
@@ -149,9 +156,8 @@ Return ONLY a valid JSON object:
     "repair_type": "<Emergency Repair/Replacement/Major Repair/Maintenance>",
     "estimated_cost": <cost in EUR - be realistic and severe>,
     "additional_maintenance": [
-        {{"year": <0-10>, "type": "<description>", "cost": <EUR>}},
+        // Include 1-3 additional events MAX - be moderate, only what's truly necessary
         {{"year": <0-10>, "type": "<description>", "cost": <EUR>}}
-        // Include 2-4 additional events for realistic maintenance over 10 years
     ],
     "severity_impact": "<explanation of why these costs and timeline>"
 }}

@@ -113,8 +113,11 @@ function App() {
   const [valuationError, setValuationError] = useState('');
   const [isValuationLoading, setIsValuationLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
   const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const selectedImage = useMemo(
     () => processedImages.find((image) => image.id === selectedImageId) || null,
@@ -183,7 +186,6 @@ function App() {
 
   const handleStartClick = () => {
     setIsTransitioning(true);
-    fileInputRef.current?.click();
     setTimeout(() => {
       setShowUpload(true);
     }, 800);
@@ -258,11 +260,92 @@ function App() {
     }
   };
 
-  const handleCameraCapture = (event) => {
-    handleFileSelection(Array.from(event.target.files || []));
-    if (event.target) {
-      event.target.value = '';
+  const handleOpenCamera = async () => {
+    const numericPrice = parseFloat(propertyPrice);
+    if (!propertyAddress.trim() || Number.isNaN(numericPrice)) {
+      setErrorMessage('Please enter the property address and price before taking photos.');
+      return;
     }
+    
+    setShowCameraModal(true);
+    setErrorMessage('');
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setCameraStream(stream);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+      let errorMsg = 'Unable to access camera. ';
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg += 'Please allow camera permissions in your browser settings.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg += 'No camera found on this device.';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg += 'Camera is already in use by another application.';
+      } else {
+        errorMsg += error.message || 'Please check permissions.';
+      }
+      setErrorMessage(errorMsg);
+      setShowCameraModal(false);
+    }
+  };
+
+  const handleCapturePhoto = async () => {
+    try {
+      if (!videoRef.current || !canvasRef.current) {
+        throw new Error('Video or canvas not ready');
+      }
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to blob
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.95);
+      });
+      
+      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      setIsUploading(true);
+      handleCloseCamera();
+      
+      const uploadResult = await uploadFile(file);
+      setProcessedImages((prev) => [uploadResult, ...prev]);
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Capture error:', error);
+      setErrorMessage(error.message || 'Unable to capture photo.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCloseCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setShowCameraModal(false);
   };
 
   const handleProcessQueuedFiles = async () => {
@@ -443,14 +526,6 @@ function App() {
               onChange={handleFileInputChange}
               className="file-input"
             />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleCameraCapture}
-              className="file-input"
-            />
             <div className="upload-label">
               <p className="upload-text">Drop your files here</p>
               <p className="upload-formats">JPEG or PNG, up to 50MB each</p>
@@ -473,10 +548,7 @@ function App() {
               <button
                 type="button"
                 className="secondary-button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  cameraInputRef.current?.click();
-                }}
+                onClick={handleOpenCamera}
               >
                 Take photo with camera
               </button>
@@ -802,6 +874,28 @@ function App() {
                   <div className="pricing-placeholder">Pricing data unavailable for this photo.</div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCameraModal && (
+        <div className="detail-overlay visible">
+          <div className="camera-modal">
+            <div className="camera-modal__header">
+              <h3>Take a photo</h3>
+              <button type="button" className="close-detail" onClick={handleCloseCamera}>
+                Close
+              </button>
+            </div>
+            <div className="camera-preview">
+              <video ref={videoRef} autoPlay playsInline muted className="camera-video" />
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+            </div>
+            <div className="camera-actions">
+              <button type="button" className="primary-button" onClick={handleCapturePhoto}>
+                Capture Photo
+              </button>
             </div>
           </div>
         </div>

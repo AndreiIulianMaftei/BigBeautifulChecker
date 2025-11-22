@@ -9,7 +9,7 @@ import pandas as pd
 import google.generativeai as genai
 from pathlib import Path
 from dotenv import load_dotenv
-from multiprocessing import Pool
+import asyncio
 import pathlib
 
 CODEBASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -37,7 +37,6 @@ CATEGORIES = [
 CSV_PATH = Path(CODEBASE_DIR) / "dataset" / "message.csv"
 
 def detect_image_category(path_to_image: str) -> str:
-    """First pass: Detect which main category the image belongs to"""
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel(os.getenv("model"))
     
@@ -57,25 +56,20 @@ def detect_image_category(path_to_image: str) -> str:
     detected_category = response.text.strip()
     print(f"Detected category: {detected_category}")
     
-    # Validate category
     if detected_category not in CATEGORIES:
-        # Try to find closest match
         for cat in CATEGORIES:
             if cat.lower() in detected_category.lower() or detected_category.lower() in cat.lower():
                 detected_category = cat
                 break
         else:
-            # Default to Building Envelope if no match
             detected_category = "Building Envelope"
             print(f"Warning: Category not recognized, defaulting to {detected_category}")
     
     return detected_category
 
 def get_subcategories_from_csv(category: str) -> list:
-    """Load subcategories (Item/Subitem) from CSV for the detected category"""
     try:
         df = pd.read_csv(CSV_PATH)
-        # Filter by category and get unique subcategories
         subcategories = df[df['Category'] == category]['Item/Subitem'].unique().tolist()
         print(f"Found {len(subcategories)} subcategories for '{category}'")
         return subcategories
@@ -84,13 +78,11 @@ def get_subcategories_from_csv(category: str) -> list:
         return []
 
 def detect_single_image(path_to_image: str, subcategories: list):
-    """Second pass: Detect damages using subcategories from CSV"""
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel(os.getenv("model"))
     
-    # Build subcategory list for prompt
     if subcategories:
-        subcategory_text = ', '.join(subcategories[:50])  # Limit to avoid token overflow
+        subcategory_text = ', '.join(subcategories[:50])
         if len(subcategories) > 50:
             subcategory_text += ', and more...'
     else:
@@ -126,20 +118,55 @@ def detect_single_image(path_to_image: str, subcategories: list):
     print(f"LLM response: {response.text}")
     return response.text
 
+async def process_single_image_async(path_to_image: str, destination_path: str):
+    loop = asyncio.get_event_loop()
+    
+    detected_category = await loop.run_in_executor(None, detect_image_category, path_to_image)
+    
+    subcategories = get_subcategories_from_csv(detected_category)
+    
+    response_text = await loop.run_in_executor(None, detect_single_image, path_to_image, subcategories)
+    
+    image = cv2.imread(path_to_image)
+    height, width = image.shape[:2]
+
+    try:
+        lines = response_text.strip().split('\n')
+        json_content_lines = lines[1:-1]
+        clean_json_string = "\n".join(json_content_lines)
+        response_json = json.loads(clean_json_string)
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return {}
+
+    for item in response_json:
+        y0, x0, y1, x1 = item["box_2d"]
+        x_min = int(x0 / 1000 * width)
+        y_min = int(y0 / 1000 * height)
+        x_max = int(x1 / 1000 * width)
+        y_max = int(y1 / 1000 * height)
+        label = item["label"]
+        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=(0,0,255), thickness=2)
+        cv2.putText(image, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+
+    cv2.imwrite(destination_path, image)
+
+    annotation_json = {
+        "imageID": os.path.splitext(os.path.basename(path_to_image))[0],
+        "detected_category": detected_category,
+        "annotation": response_json
+    }
+    return annotation_json
+
+async def get_bbox_async(path_to_image: str, destination_path: str):
+    return await process_single_image_async(path_to_image, destination_path)
+
 def get_bbox(path_to_image: str, destination_path: str):
     image = cv2.imread(path_to_image)
     height, width = image.shape[:2]
 
-    # Stage 1: Detect category
-    print("\n=== Stage 1: Detecting image category ===")
     detected_category = detect_image_category(path_to_image)
-    
-    # Stage 2: Get subcategories from CSV for that category
-    print("\n=== Stage 2: Loading subcategories from CSV ===")
     subcategories = get_subcategories_from_csv(detected_category)
-    
-    # Stage 3: Detect damages with subcategories
-    print("\n=== Stage 3: Detecting damages with subcategories ===")
     response_text = detect_single_image(path_to_image, subcategories)
 
     try:
@@ -147,30 +174,26 @@ def get_bbox(path_to_image: str, destination_path: str):
         json_content_lines = lines[1:-1]
         clean_json_string = "\n".join(json_content_lines)
         response_json = json.loads(clean_json_string)
-
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON: {e}")
         return {}
 
     for item in response_json:
         y0, x0, y1, x1 = item["box_2d"]
-
         x_min = int(x0 / 1000 * width)
         y_min = int(y0 / 1000 * height)
         x_max = int(x1 / 1000 * width)
         y_max = int(y1 / 1000 * height)
-
         label = item["label"]
-
         cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=(0,0,255), thickness=2)
         cv2.putText(image, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
 
     cv2.imwrite(destination_path, image)
 
     annotation_json = {
-        "imageID" : os.path.splitext(os.path.basename(path_to_image))[0],
+        "imageID": os.path.splitext(os.path.basename(path_to_image))[0],
         "detected_category": detected_category,
-        "annotation" : response_json
+        "annotation": response_json
     }
     return annotation_json
 

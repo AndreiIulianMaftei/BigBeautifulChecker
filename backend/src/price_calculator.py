@@ -434,19 +434,24 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
     # Default CSV path relative to backend directory
     if csv_path is None:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "dataset", "message.csv")
+    
+    # Create semaphore to limit concurrent API calls
     semaphore = asyncio.Semaphore(max_concurrent)
     
-    tasks = [
-        analyze_damage(
-            damage_item=item["item"],
-            severity=item["severity"],
-            csv_path=csv_path,
-            use_mock=use_mock
-        )
-        for item in damage_items
-    ]
+    async def analyze_with_semaphore(item: Dict) -> Dict:
+        """Wrapper to use semaphore for rate limiting"""
+        async with semaphore:
+            return await analyze_damage(
+                damage_item=item["item"],
+                severity=item["severity"],
+                csv_path=csv_path,
+                use_mock=use_mock
+            )
     
-    # Run all analyses concurrently
+    # Create tasks with semaphore control
+    tasks = [analyze_with_semaphore(item) for item in damage_items]
+    
+    # Run all analyses concurrently with rate limiting
     results = await asyncio.gather(*tasks, return_exceptions=True)
     
     # Filter out None and exceptions

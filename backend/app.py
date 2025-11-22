@@ -56,10 +56,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# UPLOAD_DIR = "temp_uploads"
-# RESULTS_DIR = "temp_results"
-UPLOAD_DIR = "/mnt/data/uploads"
-RESULTS_DIR = "/mnt/data/results"
+UPLOAD_DIR = "temp_uploads"
+RESULTS_DIR = "temp_results"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -182,7 +180,7 @@ async def detect_and_price(
         # Run detection
         output_filename = f"{os.path.splitext(file.filename)[0]}_annotated.png"
         destination_path = os.path.join(RESULTS_DIR, output_filename)
-        detection_result = get_bbox(temp_input_path, destination_path)
+        detection_result = await asyncio.to_thread(get_bbox, temp_input_path, destination_path)
         
         # Transform detection output to price calculator input
         damage_items = []

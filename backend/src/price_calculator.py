@@ -162,7 +162,7 @@ async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
 
     # Run API call in thread pool to avoid blocking
     loop = asyncio.get_event_loop()
-    genai.configure(api_key=os.getenv("GOOGLE_GENAI_API_KEY"))
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     response = await loop.run_in_executor(
         None,
         lambda: genai.GenerativeModel('gemini-2.0-flash-exp').generate_content(prompt)

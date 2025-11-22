@@ -1,0 +1,8 @@
+google-genai
+python-dotenv
+opencv-python-headless
+nltk
+matplotlib
+uvicorn
+fastapi
+python-multipart

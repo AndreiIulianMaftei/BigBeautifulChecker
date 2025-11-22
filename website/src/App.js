@@ -14,6 +14,14 @@ const formatCurrency = (value) => {
   return formatter.format(Math.max(0, value || 0));
 };
 
+const clampSeverity = (value) => {
+  const numeric = parseInt(value, 10);
+  if (Number.isNaN(numeric)) {
+    return 3;
+  }
+  return Math.min(5, Math.max(1, numeric));
+};
+
 const buildCostProfilesFromPricing = (pricing) => {
   if (!pricing?.analyses?.length) {
     return [];
@@ -98,6 +106,12 @@ function App() {
   const [processedImages, setProcessedImages] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(null);
+  const [propertyAddress, setPropertyAddress] = useState('');
+  const [propertyPrice, setPropertyPrice] = useState('');
+  const [propertyType, setPropertyType] = useState('APARTMENTBUY');
+  const [valuationReport, setValuationReport] = useState(null);
+  const [valuationError, setValuationError] = useState('');
+  const [isValuationLoading, setIsValuationLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   const selectedImage = useMemo(
@@ -106,6 +120,13 @@ function App() {
   );
 
   const aggregateReport = useMemo(() => buildAggregateReport(processedImages), [processedImages]);
+  const tenYearRepairBudget = useMemo(() => {
+    if (!aggregateReport) {
+      return 0;
+    }
+    const tenYear = aggregateReport.totals.find((total) => total.year === 10);
+    return tenYear?.total || 0;
+  }, [aggregateReport]);
 
   const plotlyFigure = useMemo(() => {
     if (!selectedImage?.costProfiles?.length) {
@@ -224,6 +245,12 @@ function App() {
       return;
     }
 
+    const numericPrice = parseFloat(propertyPrice);
+    if (!propertyAddress.trim() || Number.isNaN(numericPrice)) {
+      setErrorMessage('Please enter the property address and price before uploading.');
+      return;
+    }
+
     setErrorMessage('');
     setIsUploading(true);
 
@@ -240,6 +267,67 @@ function App() {
       }
     }
   };
+
+  const fetchValuationReport = async (damageItems) => {
+    setIsValuationLoading(true);
+    setValuationError('');
+    try {
+      const numericPrice = parseFloat(propertyPrice);
+      const response = await fetch(`${API_BASE_URL}/valuation-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: propertyAddress,
+          current_price: numericPrice,
+          property_type: propertyType,
+          damage_items: damageItems,
+          use_mock: false,
+          max_concurrent: 5,
+        }),
+      });
+
+      if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || 'Failed to generate valuation report');
+      }
+
+      const payload = await response.json();
+      setValuationReport(payload);
+    } catch (err) {
+      console.error('Valuation error:', err);
+      setValuationError(err.message || 'Unable to build valuation report.');
+      setValuationReport(null);
+    } finally {
+      setIsValuationLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!processedImages.length) {
+      setValuationReport(null);
+      return;
+    }
+
+    const numericPrice = parseFloat(propertyPrice);
+    if (!propertyAddress.trim() || Number.isNaN(numericPrice)) {
+      return;
+    }
+
+    const aggregatedDamage = processedImages.flatMap((image) =>
+      (image.pricing?.analyses || []).map((analysis) => ({
+        item: analysis.damage_item || 'Damage',
+        severity: clampSeverity(analysis.severity ?? 3),
+      }))
+    );
+
+    if (!aggregatedDamage.length) {
+      return;
+    }
+
+    fetchValuationReport(aggregatedDamage);
+  }, [processedImages, propertyAddress, propertyPrice, propertyType]);
 
   return (
     <div className="app">
@@ -270,6 +358,44 @@ function App() {
             <p className="eyebrow">Step 1</p>
             <h2>Upload inspection photos</h2>
             <p className="subtitle">Drag and drop multiple images or browse your computer.</p>
+          </div>
+
+          <div className="property-form">
+            <div className="property-field">
+              <label htmlFor="property-address">Property address</label>
+              <input
+                id="property-address"
+                type="text"
+                placeholder="e.g. Munich, Bavaria"
+                value={propertyAddress}
+                onChange={(e) => setPropertyAddress(e.target.value)}
+              />
+            </div>
+            <div className="property-field">
+              <label htmlFor="property-price">Purchase price (CHF)</label>
+              <input
+                id="property-price"
+                type="number"
+                min="0"
+                placeholder="550000"
+                value={propertyPrice}
+                onChange={(e) => setPropertyPrice(e.target.value)}
+              />
+            </div>
+            <div className="property-field">
+              <label htmlFor="property-type">Property type</label>
+              <select
+                id="property-type"
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+              >
+                <option value="APARTMENTBUY">Apartment</option>
+                <option value="HOUSEBUY">House</option>
+                <option value="LANDBUY">Land</option>
+                <option value="GARAGEBUY">Garage</option>
+                <option value="OFFICEBUY">Office</option>
+              </select>
+            </div>
           </div>
           
           <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
@@ -374,6 +500,48 @@ function App() {
                         <strong>{formatCurrency(system.value)}</strong>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {(isValuationLoading || valuationReport || valuationError) && (
+            <div className="valuation-report">
+              <h3>Property valuation & cost outlook</h3>
+              {isValuationLoading && <p className="status-message inline">Calculating valuation…</p>}
+              {valuationError && <p className="error-message inline">{valuationError}</p>}
+
+              {valuationReport && (
+                <div className="valuation-grid">
+                  <div className="valuation-card">
+                    <p className="metric-label">Address</p>
+                    <p className="valuation-value">{valuationReport.address}</p>
+                    <p className="metric-label">Purchase price</p>
+                    <p className="valuation-value">{formatCurrency(valuationReport.current_price)}</p>
+                  </div>
+                  <div className="valuation-card">
+                    <p className="metric-label">10-year property value</p>
+                    <p className="valuation-value">
+                      {formatCurrency(
+                        valuationReport.valuation?.valuation?.['10_year_summary']?.final_property_value || 0
+                      )}
+                    </p>
+                    <p className="metric-label">Projected ROI</p>
+                    <p className="valuation-subtext">
+                      {valuationReport.valuation?.valuation?.['10_year_summary']?.total_roi_percentage || 0}%
+                    </p>
+                  </div>
+                  <div className="valuation-card">
+                    <p className="metric-label">10-year repair budget</p>
+                    <p className="valuation-value">{formatCurrency(tenYearRepairBudget)}</p>
+                    <p className="metric-label">Net projected value</p>
+                    <p className="valuation-subtext">
+                      {formatCurrency(
+                        (valuationReport.valuation?.valuation?.['10_year_summary']?.final_property_value || 0) -
+                          tenYearRepairBudget
+                      )}
+                    </p>
                   </div>
                 </div>
               )}

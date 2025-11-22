@@ -39,6 +39,11 @@ class PropertyValuationRequest(BaseModel):
     address: str
     property_type: str = "APARTMENTBUY"
 
+class CombinedValuationRequest(PropertyValuationRequest):
+    damage_items: List[DamageItem] = []
+    use_mock: bool = False
+    max_concurrent: int = 5
+
 app = FastAPI(title="Damage Detection Backend")
 
 app.add_middleware(
@@ -274,6 +279,47 @@ def property_valuation(request: PropertyValuationRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Property valuation error: {str(e)}")
+
+@app.post("/valuation-report", summary="Combined property valuation and repair cost outlook")
+async def valuation_report(request: CombinedValuationRequest):
+    """Generate a combined property valuation and damage repair outlook."""
+    try:
+        valuation = property_valuation(PropertyValuationRequest(
+            current_price=request.current_price,
+            address=request.address,
+            property_type=request.property_type
+        ))
+
+        repair_summary = None
+        if request.damage_items:
+            repair_summary = await calculate_price(PriceRequest(
+                damage_items=request.damage_items,
+                use_mock=request.use_mock,
+                max_concurrent=request.max_concurrent
+            ))
+
+        combined = {
+            "address": request.address,
+            "current_price": request.current_price,
+            "property_type": request.property_type,
+            "valuation": valuation,
+            "repairs": repair_summary,
+        }
+
+        if repair_summary and repair_summary.get("analyses"):
+            total_repairs = repair_summary["summary"]["grand_total_10year_cost_chf"]
+            final_value = valuation["valuation"]["10_year_summary"]["final_property_value"]
+            combined["insights"] = {
+                "net_projected_value": round(final_value - total_repairs, 2),
+                "repair_to_value_ratio": round((total_repairs / request.current_price) * 100, 2)
+            }
+
+        return combined
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Valuation report error: {str(e)}")
 
 def generate_cost_graph(pricing_result):
     analyses = pricing_result.get("analyses") if pricing_result else None

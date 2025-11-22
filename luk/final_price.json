@@ -1,9 +1,27 @@
-```json
 {
-    "breakdown": {
-        "repair_cost": 37952.01,
-        "maintenance_expenses": 3750.00,
-        "other_considerations": 0.00
+    "Towel Radiator Damage": {
+        "replacement_price_year_0": 1000.00,
+        "replacement_price_year_10_inflated": 1218.99,
+        "lifespan": 30
+    },
+    "Synthetic Resin Paint on Pipes and Radiators Damage": {
+        "replacement_price_year_0": 80.00,
+        "replacement_price_year_10_inflated": 97.52,
+        "lifespan": 20
+    },
+    "Thermostatic Radiator Valve Damage": {
+        "replacement_price_year_0": 350.00,
+        "replacement_price_year_10_inflated": 426.65,
+        "lifespan": 20
+    },
+    "Ordinary Radiator Valve Damage": {
+        "replacement_price_year_0": 250.00,
+        "replacement_price_year_10_inflated": 304.75,
+        "lifespan": 20
+    },
+    "Air Conditioning Unit (Small) Damage": {
+        "replacement_price_year_0": 1300.00,
+        "replacement_price_year_10_inflated": 1584.69,
+        "lifespan": 15
     }
 }
-```

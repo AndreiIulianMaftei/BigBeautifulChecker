@@ -10,7 +10,6 @@ RUN npm install
 
 # Copy the rest of the frontend code
 COPY website/ ./
-COPY . .
 
 # Build the static files
 RUN npm run build
@@ -36,6 +35,8 @@ COPY backend/app.py .
 
 # 3. Copy the src folder from the backend folder
 COPY backend/src/ ./src/
+
+COPY dataset/ /dataset/
 
 # Copy the built React frontend from Stage 1
 COPY --from=frontend-builder /app/website/build ./static

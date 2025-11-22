@@ -86,7 +86,7 @@ async def detect_damage(
         output_filename = f"{os.path.splitext(file.filename)[0]}_annotated.png"
         destination_path = os.path.join(RESULTS_DIR, output_filename)
 
-        result_json = get_bbox(temp_input_path, destination_path, class_list)
+        result_json = get_bbox(temp_input_path, destination_path)
 
         encoded_image = None
         if os.path.exists(destination_path):
@@ -178,7 +178,7 @@ async def detect_and_price(
         # Run detection
         output_filename = f"{os.path.splitext(file.filename)[0]}_annotated.png"
         destination_path = os.path.join(RESULTS_DIR, output_filename)
-        detection_result = get_bbox(temp_input_path, destination_path, class_list)
+        detection_result = get_bbox(temp_input_path, destination_path)
         
         # Transform detection output to price calculator input
         damage_items = []

@@ -91,7 +91,7 @@ def get_subcategories_from_csv(category: str) -> list:
         print(f"Error loading subcategories: {e}")
         return []
 
-def detect_single_image(path_to_image: str, classes: list, subcategories: list):
+def detect_single_image(path_to_image: str, subcategories: list):
     """Second pass: Detect damages using subcategories from CSV"""
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
@@ -106,8 +106,14 @@ def detect_single_image(path_to_image: str, classes: list, subcategories: list):
     std_detection_prompt = f"""Please locate the damages in the given image of house interior and exterior and output the bounding boxes. Be as precise as possible. But only list the damages that you are very confident about, and only list the ones that are evident. The box_2d should be [ymin, xmin, ymax, xmax] normalized to 0-1000."
     Important: Only return the json object nothing else.
 
-    The possible damage types are: {', '.join(classes) if classes else 'crack, mold, water_damage, rust, broken_window, chipped_paint, sagging_roof, damaged_door, faulty_wiring, leaking_pipe'}.
-    severity_level should range from 1 to 5. 1 indicates minor damage while 5 indicates severe damage.
+    Analyze the image and identify any damage types present. Use descriptive labels for the damage types you detect.
+    
+    SEVERITY GUIDELINES - Be realistic and err on the side of caution:
+    - If damage is VISIBLE and APPARENT (clearly visible structural issues, active leaks, exposed wiring, large cracks, significant water damage, mold growth): Assign severity 4-5 immediately. These require urgent attention.
+    - If damage is MODERATE but contained (small cracks, minor discoloration, slight wear, cosmetic issues): Assign severity 2-3. These can be addressed over time.
+    - Only assign severity 1 for truly cosmetic issues that don't affect function or safety.
+    - When in doubt about apparent damage, lean towards HIGHER severity (4-5) rather than lower. It's better to flag potential problems early.
+    
     subcategory_type should be one of the following building components from the database: {subcategory_text}
     
     Choose the most appropriate subcategory that matches the damaged component.
@@ -136,7 +142,7 @@ def detect_single_image(path_to_image: str, classes: list, subcategories: list):
     print(f"LLM response: {response.text}")
     return response.text
 
-def get_bbox(path_to_image: str, destination_path: str, classes: list):
+def get_bbox(path_to_image: str, destination_path: str):
     image = cv2.imread(path_to_image)
     height, width = image.shape[:2]
 
@@ -150,7 +156,7 @@ def get_bbox(path_to_image: str, destination_path: str, classes: list):
     
     # Stage 3: Detect damages with subcategories
     print("\n=== Stage 3: Detecting damages with subcategories ===")
-    response_text = detect_single_image(path_to_image, classes, subcategories)
+    response_text = detect_single_image(path_to_image, subcategories)
 
     try:
         lines = response_text.strip().split('\n')
@@ -189,5 +195,5 @@ if __name__=="__main__":
     # test single run
     test_image_path = pathlib.Path(CODEBASE_DIR / "sample_images/brokenwall.png")
     destination_path = pathlib.Path(CODEBASE_DIR / "sample_images/bbox_brokenwall.png")
-    get_bbox(test_image_path, destination_path, [])
+    get_bbox(test_image_path, destination_path)
 

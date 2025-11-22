@@ -13,7 +13,8 @@ def load_damage_database(csv_path: str) -> pd.DataFrame:
     return df
 
 def find_damage_in_csv(df: pd.DataFrame, damage_item: str) -> pd.DataFrame:
-    matches = df[df['Item/Subitem'].str.contains(damage_item, case=False, na=False)]
+    # Use regex=False to treat special characters literally (e.g., parentheses, brackets)
+    matches = df[df['Item/Subitem'].str.contains(damage_item, case=False, na=False, regex=False)]
     return matches
 
 def complete_missing_data_prompt(damage_item: str, partial_data: Dict) -> str:
@@ -29,8 +30,10 @@ Price Type: {partial_data.get('Price Type', 'Missing')}
 Price: {partial_data.get('Price (CHF)', 'Missing')} CHF
 Unit: {partial_data.get('Unit', 'Missing')}
 
-Please provide reasonable estimates for any missing data (marked as '-' or 'Missing').
+Please provide CONSERVATIVE estimates for any missing data (marked as '-' or 'Missing').
 Consider industry standards for Swiss building maintenance.
+ERR ON THE SIDE OF HIGHER COSTS to account for unforeseen complications and price variations.
+Add 15-20% buffer to typical costs for realistic project planning.
 
 Return ONLY a valid JSON object with this structure:
 {{
@@ -54,9 +57,16 @@ Base Cost: {complete_data.get('price_chf')} CHF {complete_data.get('unit')}
 Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/urgent)
 
 Based on the severity level, predict:
-1. When the next repair/replacement will be needed
+1. When the next repair/replacement will be needed (be CONSERVATIVE - higher severity means sooner action)
 2. Whether additional maintenance will be needed before replacement
 3. How severity affects the timeline and costs
+
+IMPORTANT:
+- For severity 4-5: Consider URGENT action (within 1-2 years) and add 20-30% cost buffer
+- For severity 3: Plan within 2-4 years with 15% cost buffer
+- For severity 1-2: Follow normal schedule but include preventive maintenance
+- Always include contingency costs (10-30% depending on severity)
+- Account for potential hidden damages that often accompany visible issues
 
 Return ONLY a valid JSON object:
 {{
@@ -72,7 +82,8 @@ Return ONLY a valid JSON object:
 
 def calculate_10year_projection(damage_item: str, repair_schedule: Dict, complete_data: Dict) -> Dict:
     """Calculate 10-year cost projection numerically based on repair schedule"""
-    INFLATION_RATE = 0.02  # 2% per year
+    INFLATION_RATE = 0.035  # 3.5% per year (conservative estimate for Swiss building costs)
+    CONTINGENCY_BUFFER = 0.15  # 15% contingency buffer for unforeseen costs
     yearly_costs = []
     cumulative_cost = 0
     
@@ -105,10 +116,11 @@ def calculate_10year_projection(damage_item: str, repair_schedule: Dict, complet
     for year in range(1, 11):
         if year in scheduled_events:
             event = scheduled_events[year]
-            # Apply inflation to the cost
-            inflated_cost = event['cost'] * ((1 + INFLATION_RATE) ** (year - 1))
+            # Apply inflation and contingency buffer to the cost
+            base_cost = event['cost'] * (1 + CONTINGENCY_BUFFER)
+            inflated_cost = base_cost * ((1 + INFLATION_RATE) ** (year - 1))
             scheduled_work = event['type']
-            notes = f"Scheduled {event['type'].lower()} with {INFLATION_RATE*100}% inflation"
+            notes = f"Scheduled {event['type'].lower()} with {INFLATION_RATE*100}% inflation + {CONTINGENCY_BUFFER*100}% contingency"
         else:
             inflated_cost = 0
             scheduled_work = "none"
@@ -127,7 +139,7 @@ def calculate_10year_projection(damage_item: str, repair_schedule: Dict, complet
     # Generate summary
     num_events = len([y for y in yearly_costs if y['cost'] > 0])
     summary = f"Total of {num_events} maintenance/repair event(s) scheduled over 10 years. "
-    summary += f"Costs include {INFLATION_RATE*100}% annual inflation adjustment."
+    summary += f"Costs include {INFLATION_RATE*100}% annual inflation and {CONTINGENCY_BUFFER*100}% contingency buffer for conservative planning."
     
     return {
         'yearly_costs': yearly_costs,

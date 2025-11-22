@@ -1,54 +1,46 @@
-# ==========================================
-# Stage 1: Build the Frontend
-# ==========================================
-FROM node:18-alpine as frontend-builder
-
+# --- Stage 1: Build React Frontend ---
+FROM node:18 as frontend-builder
 WORKDIR /app/website
 
-# Install deps
+# Copy dependency files
 COPY website/package*.json ./
-RUN npm ci
 
-# Copy source and Build
+# Install deps
+RUN npm install
+
+# Copy the rest of the frontend code
 COPY website/ ./
-# NOTE: Check your package.json. If using Vite, this creates 'dist'. If CRA, 'build'.
-# We assume 'dist' here based on modern defaults. Change to 'build' if needed.
+
+# Build the static files
 RUN npm run build
 
-
-# ==========================================
-# Stage 2: Python Backend
-# ==========================================
-FROM python:3.11-slim
-
-# 1. Install System Dependencies
-# libgl1 & libglib2.0-0 are REQUIRED for OpenCV (get_bbox)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+# --- Stage 2: Build Python Backend ---
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# 2. Install Python Deps
-# We copy requirements first for Docker caching
-COPY backend/requirements.txt ./
+# --- FIX: Updated package names for new Debian version ---
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+# -------------------------------------------------------
+
+# 1. Copy requirements from the backend folder
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 3. Copy Backend Source Code
-COPY backend ./backend
+# 2. Copy app.py from the backend folder
+COPY backend/app.py .
 
-# 4. Copy the Built Frontend from Stage 1
-# We place it into 'backend/static' so the modified app.py can find it
-# IMPORTANT: Verify if your build folder is 'dist' or 'build'
-COPY --from=frontend-builder /app/website/build ./backend/static
+# 3. Copy the src folder from the backend folder
+COPY backend/src/ ./src/
 
-# 5. Prepare environment
-WORKDIR /app/backend
-# Create the temp folders your code uses to prevent permission errors
-RUN mkdir -p temp_uploads temp_results
+# Copy the built React frontend from Stage 1
+COPY --from=frontend-builder /app/website/build ./static
 
-# 6. Start the Server
-# Cloud Run injects the PORT environment variable.
-# We use shell execution to pass that variable to uvicorn.
-CMD sh -c "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}"
+# Expose the port
+EXPOSE 8000
+
+# Start the app
+CMD ["python", "app.py"]

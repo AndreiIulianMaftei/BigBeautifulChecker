@@ -56,8 +56,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "temp_uploads"
-RESULTS_DIR = "temp_results"
+# UPLOAD_DIR = "temp_uploads"
+# RESULTS_DIR = "temp_results"
+UPLOAD_DIR = "/mnt/data/uploads"
+RESULTS_DIR = "/mnt/data/results"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 

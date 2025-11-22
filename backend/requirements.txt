@@ -7,3 +7,5 @@ uvicorn
 fastapi
 python-multipart
 pandas
+pydantic
+requests

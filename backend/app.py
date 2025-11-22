@@ -12,6 +12,8 @@ from pydantic import BaseModel
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 try:
     from src.get_bbox import get_bbox
@@ -356,6 +358,27 @@ def generate_cost_graph(pricing_result):
     buffer.seek(0)
     return base64.b64encode(buffer.read()).decode("utf-8")
 
+
+base_static_dir = os.path.join(os.path.dirname(__file__), "static")
+nested_static_dir = os.path.join(base_static_dir, "static")
+
+if os.path.exists(nested_static_dir):
+    app.mount("/static", StaticFiles(directory=nested_static_dir), name="static")
+elif os.path.exists(base_static_dir):
+    app.mount("/static", StaticFiles(directory=base_static_dir), name="static")
+
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    file_path = os.path.join(base_static_dir, full_path)
+    
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    index_file = os.path.join(base_static_dir, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+        
+    return {"error": "Frontend files not found. Did you run npm run build?"}
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

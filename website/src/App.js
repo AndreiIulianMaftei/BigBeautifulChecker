@@ -112,7 +112,9 @@ function App() {
   const [valuationReport, setValuationReport] = useState(null);
   const [valuationError, setValuationError] = useState('');
   const [isValuationLoading, setIsValuationLoading] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   const selectedImage = useMemo(
     () => processedImages.find((image) => image.id === selectedImageId) || null,
@@ -181,6 +183,7 @@ function App() {
 
   const handleStartClick = () => {
     setIsTransitioning(true);
+    fileInputRef.current?.click();
     setTimeout(() => {
       setShowUpload(true);
     }, 800);
@@ -239,15 +242,38 @@ function App() {
     };
   };
 
-  const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files || []);
+  const handleFileSelection = (files) => {
     if (!files.length) {
+      return;
+    }
+
+    setErrorMessage('');
+    setPendingFiles((prev) => [...prev, ...files]);
+  };
+
+  const handleFileInputChange = (event) => {
+    handleFileSelection(Array.from(event.target.files || []));
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const handleCameraCapture = (event) => {
+    handleFileSelection(Array.from(event.target.files || []));
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const handleProcessQueuedFiles = async () => {
+    if (!pendingFiles.length) {
+      setErrorMessage('Add photos first, then start processing.');
       return;
     }
 
     const numericPrice = parseFloat(propertyPrice);
     if (!propertyAddress.trim() || Number.isNaN(numericPrice)) {
-      setErrorMessage('Please enter the property address and price before uploading.');
+      setErrorMessage('Please enter the property address and price before processing.');
       return;
     }
 
@@ -255,17 +281,21 @@ function App() {
     setIsUploading(true);
 
     try {
-      const uploadResults = await Promise.all(files.map(uploadFile));
+      const uploadResults = await Promise.all(pendingFiles.map(uploadFile));
       setProcessedImages((prev) => [...uploadResults, ...prev]);
+      setPendingFiles([]);
     } catch (error) {
       console.error('Upload error:', error);
       setErrorMessage(error.message || 'Unable to process the selected files.');
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
+  };
+
+  const handleUploadAreaDrop = (event) => {
+    event.preventDefault();
+    const files = Array.from(event.dataTransfer.files || []);
+    handleFileSelection(files);
   };
 
   const fetchValuationReport = async (damageItems) => {
@@ -398,14 +428,27 @@ function App() {
             </div>
           </div>
           
-          <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
+          <div
+            className="upload-area"
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleUploadAreaDrop}
+          >
             <input
               ref={fileInputRef}
               type="file"
               id="file-upload"
               multiple
               accept="image/*,.pdf"
-              onChange={handleFileChange}
+              onChange={handleFileInputChange}
+              className="file-input"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleCameraCapture}
               className="file-input"
             />
             <div className="upload-label">
@@ -421,12 +464,56 @@ function App() {
               >
                 Browse files
               </button>
-              <p className="upload-hint">You can select multiple files at once</p>
+              <p className="upload-hint">You can select multiple files at once or snap a new photo.</p>
             </div>
           </div>
 
+          <div className="upload-actions">
+            <div className="action-buttons">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  cameraInputRef.current?.click();
+                }}
+              >
+                Take photo with camera
+              </button>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleProcessQueuedFiles}
+                disabled={!pendingFiles.length || isUploading}
+              >
+                {isUploading ? 'Processing...' : 'Start processing'}
+              </button>
+            </div>
+
+            {pendingFiles.length > 0 ? (
+              <div className="queued-files">
+                <p className="queued-title">Ready to process ({pendingFiles.length})</p>
+                <div className="queued-grid">
+                  {pendingFiles.map((file) => (
+                    <div className="queued-file" key={`${file.name}-${file.lastModified}`}>
+                      <div>
+                        <p className="file-name">{file.name}</p>
+                        <p className="queued-meta">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                      </div>
+                      <span className="queued-pill">
+                        {file.type?.includes('/') ? file.type.split('/')[1] : file.type || 'file'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="upload-hint inline">Add photos or capture a new one, then start processing.</p>
+            )}
+          </div>
+
           {isUploading && (
-            <div className="status-message">Processing files…</div>
+            <div className="status-message">Processing files...</div>
           )}
 
           {errorMessage && (
@@ -509,7 +596,7 @@ function App() {
           {(isValuationLoading || valuationReport || valuationError) && (
             <div className="valuation-report">
               <h3>Property valuation & cost outlook</h3>
-              {isValuationLoading && <p className="status-message inline">Calculating valuation…</p>}
+              {isValuationLoading && <p className="status-message inline">Calculating valuation...</p>}
               {valuationError && <p className="error-message inline">{valuationError}</p>}
 
               {valuationReport && (

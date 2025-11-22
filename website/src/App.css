@@ -219,6 +219,72 @@
   margin: 4px 0 0;
 }
 
+.upload-hint.inline {
+  text-align: left;
+  margin-top: 12px;
+}
+
+.upload-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.queued-files {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(248, 248, 248, 0.85);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+}
+
+.queued-title {
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: #111;
+}
+
+.queued-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.queued-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.queued-meta {
+  margin: 2px 0 0;
+  color: rgba(17, 17, 17, 0.55);
+  font-size: 12px;
+}
+
+.queued-pill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(17, 17, 17, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.8);
+}
+
 .status-message,
 .error-message {
   margin: 24px 0 0;
@@ -273,6 +339,13 @@
 .primary-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .view-report {

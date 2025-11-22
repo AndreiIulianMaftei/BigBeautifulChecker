@@ -1115,8 +1115,8 @@ function App() {
                     >
                       <defs>
                         <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1141,7 +1141,7 @@ function App() {
                       <Area 
                         type="monotone" 
                         dataKey="cumulative" 
-                        stroke="#6366f1" 
+                        stroke="#10b981" 
                         strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorCumulative)" 
@@ -1184,7 +1184,7 @@ function App() {
                       />
                       <Bar 
                         dataKey="totalCost" 
-                        fill="#8b5cf6" 
+                        fill="#f97316" 
                         radius={[8, 8, 0, 0]}
                         animationDuration={800}
                       />
@@ -1218,8 +1218,8 @@ function App() {
                             <Cell 
                               key={`cell-${index}`} 
                               fill={[
-                                '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
-                                '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
+                                '#10b981', '#f97316', '#059669', '#ea580c', 
+                                '#14b8a6', '#fb923c', '#0d9488', '#fdba74'
                               ][index % 8]} 
                             />
                           ))}
@@ -1287,17 +1287,17 @@ function App() {
                       <Legend />
                       <Bar 
                         dataKey="annual" 
-                        fill="#a78bfa" 
+                        fill="#f97316" 
                         radius={[8, 8, 0, 0]}
                         name="Annual Cost"
                       />
                       <Line 
                         type="monotone" 
                         dataKey="average" 
-                        stroke="#f59e0b" 
+                        stroke="#fb923c" 
                         strokeWidth={3}
                         name="Average Cost"
-                        dot={{ fill: '#f59e0b', r: 5 }}
+                        dot={{ fill: '#fb923c', r: 5 }}
                       />
                       <Line 
                         type="monotone" 
@@ -1340,8 +1340,8 @@ function App() {
                             transition={{ duration: 0.8, delay: 0.5 + idx * 0.05 }}
                             style={{
                               background: [
-                                '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', 
-                                '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
+                                '#10b981', '#f97316', '#059669', '#ea580c', 
+                                '#14b8a6', '#fb923c', '#0d9488', '#fdba74'
                               ][idx % 8]
                             }}
                           />
@@ -1421,8 +1421,8 @@ function App() {
                     >
                       <defs>
                         <linearGradient id="colorSystemCumulative" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ec4899" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#ec4899" stopOpacity={0.1}/>
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1447,7 +1447,7 @@ function App() {
                       <Area 
                         type="monotone" 
                         dataKey="cumulative" 
-                        stroke="#ec4899" 
+                        stroke="#10b981" 
                         strokeWidth={3}
                         fillOpacity={1} 
                         fill="url(#colorSystemCumulative)" 
@@ -1518,7 +1518,7 @@ function App() {
                       />
                       <Bar 
                         dataKey="totalCost" 
-                        fill="#ec4899" 
+                        fill="#f97316" 
                         radius={[8, 8, 0, 0]}
                         animationDuration={800}
                       />
@@ -1551,8 +1551,8 @@ function App() {
                             <Cell 
                               key={`cell-${index}`} 
                               fill={[
-                                '#ec4899', '#f59e0b', '#10b981', '#6366f1', 
-                                '#8b5cf6', '#3b82f6', '#ef4444', '#14b8a6'
+                                '#10b981', '#f97316', '#059669', '#ea580c', 
+                                '#14b8a6', '#fb923c', '#0d9488', '#fdba74'
                               ][index % 8]} 
                             />
                           ))}
@@ -1608,10 +1608,10 @@ function App() {
                       <Line 
                         type="monotone" 
                         dataKey="totalCost" 
-                        stroke="#ec4899" 
+                        stroke="#f97316" 
                         strokeWidth={3}
                         name="Annual Cost"
-                        dot={{ fill: '#ec4899', r: 6 }}
+                        dot={{ fill: '#f97316', r: 6 }}
                         activeDot={{ r: 8 }}
                       />
                     </LineChart>
@@ -1653,7 +1653,7 @@ function App() {
                             initial={{ width: 0 }}
                             animate={{ width: `${(instance.total / systemModalData.totalCost) * 100}%` }}
                             transition={{ duration: 0.8, delay: 0.5 + idx * 0.05 }}
-                            style={{ background: '#ec4899' }}
+                            style={{ background: '#f97316' }}
                           />
                         </div>
                         <span className="system-breakdown-percent">
@@ -1686,7 +1686,7 @@ function App() {
                                     transition={{ duration: 0.6, delay: 0.6 + idx * 0.05 + yIdx * 0.02 }}
                                     style={{
                                       width: '100%',
-                                      background: yearData.cost > 0 ? '#ec4899' : '#e5e7eb',
+                                      background: yearData.cost > 0 ? '#f97316' : '#e5e7eb',
                                       borderRadius: '2px 2px 0 0',
                                       minHeight: yearData.cost > 0 ? '3px' : '1px'
                                     }}

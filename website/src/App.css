@@ -550,7 +550,7 @@
 }
 
 .top-system.clickable:hover {
-  border-color: #6366f1;
+  border-color: #10b981;
 }
 
 .graph-card {
@@ -717,8 +717,8 @@
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
-  background: rgba(59, 130, 246, 0.15);
-  color: #1e40af;
+  background: #f97316;
+  color: #fff;
 }
 
 .analysis-meta {
@@ -1001,7 +1001,7 @@
 
 .horizon-bar__fill {
   height: 100%;
-  background: linear-gradient(90deg, #111, #3c4f8d);
+  background: #10b981;
 }
 
 .horizon-bar__value {
@@ -1206,7 +1206,7 @@
 .horizon-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+  background: #10b981;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1251,18 +1251,14 @@
   align-items: flex-start;
   padding: 32px 40px;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  background: #f9fafb;
 }
 
 .horizon-modal__header h2 {
   margin: 0 0 8px 0;
   font-size: 32px;
   font-weight: 700;
-  color: #111827;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #10b981;
 }
 
 .horizon-modal__subtitle {
@@ -1326,7 +1322,7 @@
 .system-breakdown-item {
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
 }
@@ -1351,7 +1347,7 @@
 
 .system-breakdown-value {
   font-weight: 700;
-  color: #6366f1;
+  color: #f97316;
   font-size: 16px;
 }
 

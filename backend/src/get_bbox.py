@@ -6,9 +6,9 @@ import cv2
 import json
 import time
 import pandas as pd
-from google import genai
+import google.generativeai as genai
 from pathlib import Path
-from google.genai import types
+from google.generativeai import types
 from dotenv import load_dotenv
 from multiprocessing import Pool
 import pathlib
@@ -190,4 +190,3 @@ if __name__=="__main__":
     test_image_path = pathlib.Path(CODEBASE_DIR / "sample_images/brokenwall.png")
     destination_path = pathlib.Path(CODEBASE_DIR / "sample_images/bbox_brokenwall.png")
     get_bbox(test_image_path, destination_path, [])
-

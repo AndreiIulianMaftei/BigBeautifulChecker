@@ -36,6 +36,20 @@ CATEGORIES = [
 
 CSV_PATH = Path(CODEBASE_DIR) / "dataset" / "message.csv"
 
+def get_severity_color(severity) -> tuple:
+    """Return BGR color based on severity level (1-5)"""
+    try:
+        severity_int = int(severity)
+    except (ValueError, TypeError):
+        severity_int = 3  
+    
+    if severity_int == 1:
+        return (0, 255, 0)      
+    elif severity_int in [2, 3]:
+        return (0, 165, 255)   
+    else:  # 4-5
+        return (0, 0, 255)     
+
 def detect_image_category(path_to_image: str) -> str:
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel(os.getenv("model"))
@@ -146,8 +160,10 @@ async def process_single_image_async(path_to_image: str, destination_path: str):
         x_max = int(x1 / 1000 * width)
         y_max = int(y1 / 1000 * height)
         label = item["label"]
-        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=(0,0,255), thickness=2)
-        cv2.putText(image, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+        severity = item.get("severity", 3)
+        color = get_severity_color(severity)
+        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=color, thickness=2)
+        cv2.putText(image, f"{label} (S:{severity})", (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
     cv2.imwrite(destination_path, image)
 
@@ -185,8 +201,10 @@ def get_bbox(path_to_image: str, destination_path: str):
         x_max = int(x1 / 1000 * width)
         y_max = int(y1 / 1000 * height)
         label = item["label"]
-        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=(0,0,255), thickness=2)
-        cv2.putText(image, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+        severity = item.get("severity", 3)
+        color = get_severity_color(severity)
+        cv2.rectangle(image, (x_min, y_min), (x_max, y_max), color=color, thickness=2)
+        cv2.putText(image, f"{label} (S:{severity})", (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
     cv2.imwrite(destination_path, image)
 

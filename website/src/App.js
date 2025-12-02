@@ -5,7 +5,7 @@ import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, X
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const COST_HORIZONS = [5, 10, 15];
+const COST_HORIZONS = [1, 5, 10];
 
 const formatCurrency = (value) => {
   const formatter = new Intl.NumberFormat('de-CH', {
@@ -30,25 +30,36 @@ const buildCostProfilesFromPricing = (pricing) => {
   }
 
   return pricing.analyses.map((analysis, analysisIndex) => {
-    const yearlySeries = Array.from({ length: 15 }, (_, index) => {
-      const year = index + 1;
-      const backendRow = (analysis.ten_year_projection?.yearly_costs || []).find(
-        (entry) => Number(entry.year) === year
-      );
+    // Use the new projection_10year structure
+    const projection = analysis.projection_10year || {};
+    const yearlyCosts = projection.yearly_costs || [];
+    const year0 = projection.year_0 || {};
+    
+    // Build yearly series including year 0 (upfront cost)
+    const yearlySeries = [
+      {
+        year: 0,
+        cost: year0.upfront_cost || 0,
+        scheduled_work: year0.work_description || 'Upfront repair',
+        isUpfront: true
+      },
+      ...yearlyCosts.map(entry => ({
+        year: entry.year,
+        cost: entry.maintenance_cost || 0,
+        scheduled_work: entry.work_description || 'No work scheduled',
+        isUpfront: false
+      }))
+    ];
 
+    // Calculate cumulative costs for horizons (1, 5, 10 years)
+    const horizons = COST_HORIZONS.map((year) => {
+      // Find cumulative cost from yearly_costs array
+      const yearData = yearlyCosts.find(entry => entry.year === year);
       return {
         year,
-        cost: backendRow ? Number(backendRow.cost) || 0 : 0,
-        scheduled_work: backendRow?.scheduled_work || backendRow?.notes || 'No work scheduled',
+        total: yearData ? yearData.cumulative_cost : 0
       };
     });
-
-    const horizons = COST_HORIZONS.map((year) => ({
-      year,
-      total: yearlySeries
-        .filter((entry) => entry.year <= year)
-        .reduce((sum, entry) => sum + entry.cost, 0),
-    }));
 
     const maxHorizon = Math.max(...horizons.map((h) => h.total), 1);
     const maxYearly = Math.max(...yearlySeries.map((entry) => entry.cost), 1);
@@ -56,12 +67,15 @@ const buildCostProfilesFromPricing = (pricing) => {
     return {
       label: analysis.damage_item || `Detected system ${analysisIndex + 1}`,
       severity: analysis.severity ?? 3,
-      category: analysis.complete_data?.Category || 'Building component',
+      category: analysis.component_data?.category || 'Building component',
+      upfrontCost: projection.upfront_cost || 0,
+      maintenanceCost: projection.total_maintenance_cost || 0,
       horizons,
       yearlySeries,
       maxHorizon,
       maxYearly,
-      summary: analysis.ten_year_projection?.summary || 'No major maintenance expected.',
+      summary: projection.summary || 'No major maintenance expected.',
+      breakdown: projection.breakdown || { immediate_repair_pct: 0, ongoing_maintenance_pct: 0 }
     };
   });
 };
@@ -87,8 +101,8 @@ const buildAggregateReport = (images) => {
   const combinedSystems = {};
   images.forEach((image) => {
     (image.costProfiles || []).forEach((profile) => {
-      const fifteenYear = profile.horizons.find((h) => h.year === 15)?.total || 0;
-      combinedSystems[profile.label] = (combinedSystems[profile.label] || 0) + fifteenYear;
+      const tenYear = profile.horizons.find((h) => h.year === 10)?.total || 0;
+      combinedSystems[profile.label] = (combinedSystems[profile.label] || 0) + tenYear;
     });
   });
 
@@ -219,7 +233,7 @@ function App() {
     if (systemInstances.length === 0) return null;
 
     // Aggregate yearly costs across all instances
-    const yearlyData = Array.from({ length: 15 }, (_, i) => {
+    const yearlyData = Array.from({ length: 10 }, (_, i) => {
       const year = i + 1;
       let totalCost = 0;
       const instances = [];
@@ -241,22 +255,22 @@ function App() {
 
     // Calculate cumulative by instance
     const instanceBreakdown = systemInstances.map(instance => {
-      const total15Year = instance.profile.horizons.find(h => h.year === 15)?.total || 0;
+      const total10Year = instance.profile.horizons.find(h => h.year === 10)?.total || 0;
       return {
         imageName: instance.imageName,
-        total: total15Year,
+        total: total10Year,
         severity: instance.severity,
         category: instance.category,
         yearlySeries: instance.profile.yearlySeries
       };
     });
 
-    const total15Year = instanceBreakdown.reduce((sum, inst) => sum + inst.total, 0);
+    const total10Year = instanceBreakdown.reduce((sum, inst) => sum + inst.total, 0);
     const avgSeverity = systemInstances.reduce((sum, inst) => sum + inst.severity, 0) / systemInstances.length;
 
     return {
       systemName: selectedSystemName,
-      totalCost: total15Year,
+      totalCost: total10Year,
       instanceCount: systemInstances.length,
       averageSeverity: Math.round(avgSeverity),
       yearlyData,
@@ -279,9 +293,10 @@ function App() {
         cumulative += entry.cost;
         x.push(entry.year);
         y.push(Number(cumulative.toFixed(2)));
+        const costLabel = entry.isUpfront ? 'Upfront Repair' : 'Maintenance';
         hover.push(
           `Year ${entry.year}<br>${profile.label}<br>` +
-            `Added: ${formatCurrency(entry.cost)}<br>${entry.scheduled_work}`
+            `${costLabel}: ${formatCurrency(entry.cost)}<br>${entry.scheduled_work}`
         );
       });
       return {
@@ -298,7 +313,7 @@ function App() {
 
     const layout = {
       margin: { l: 50, r: 20, t: 10, b: 40 },
-      xaxis: { title: 'Year', dtick: 1, range: [1, 15] },
+      xaxis: { title: 'Year', dtick: 1, range: [0, 10] },
       yaxis: { title: 'Cumulative cost (EUR)', rangemode: 'tozero' },
       showlegend: true,
       legend: { orientation: 'h', y: -0.2 },
@@ -801,7 +816,7 @@ function App() {
 
               {aggregateReport.topSystems.length > 0 && (
                 <div className="top-systems">
-                  <p className="metric-label">Top cost drivers (15-year)</p>
+                  <p className="metric-label">Top cost drivers (10-year)</p>
                   <div className="top-systems__list">
                     {aggregateReport.topSystems.map((system) => (
                       <motion.div 
@@ -896,11 +911,11 @@ function App() {
                   <div className="graph-card">
                     <div className="graph-card__header">
                       <div>
-                        <p className="meta-label">Cumulative spend (15 years)</p>
+                        <p className="meta-label">Cumulative spend (10 years)</p>
                         <h4>
                           {formatCurrency(
                             selectedImage.costProfiles.reduce((sum, profile) => {
-                              const horizon = profile.horizons.find((h) => h.year === 15)?.total || 0;
+                              const horizon = profile.horizons.find((h) => h.year === 10)?.total || 0;
                               return sum + horizon;
                             }, 0)
                           )}
@@ -920,9 +935,9 @@ function App() {
                 )}
                 {selectedImage.costProfiles?.length ? (
                   selectedImage.costProfiles.map((profile) => {
+                    const oneYear = profile.horizons.find((h) => h.year === 1)?.total || 0;
                     const fiveYear = profile.horizons.find((h) => h.year === 5)?.total || 0;
                     const tenYear = profile.horizons.find((h) => h.year === 10)?.total || 0;
-                    const fifteenYear = profile.horizons.find((h) => h.year === 15)?.total || 0;
                     const scheduledEvents = profile.yearlySeries.filter((entry) => entry.cost > 0);
 
                     return (
@@ -937,21 +952,34 @@ function App() {
                           </span>
                         </div>
 
+                        <div className="cost-split-section">
+                          <div className="cost-split-item">
+                            <p className="meta-label">Upfront Repair Cost</p>
+                            <p className="meta-value">{formatCurrency(profile.upfrontCost)}</p>
+                            <p className="meta-hint">{profile.breakdown.immediate_repair_pct}% of total</p>
+                          </div>
+                          <div className="cost-split-item">
+                            <p className="meta-label">10-Year Maintenance</p>
+                            <p className="meta-value">{formatCurrency(profile.maintenanceCost)}</p>
+                            <p className="meta-hint">{profile.breakdown.ongoing_maintenance_pct}% of total</p>
+                          </div>
+                        </div>
+
                         <div className="profile-overview">
                           <div>
-                            <p className="meta-label">5-year cost</p>
+                            <p className="meta-label">1-year total</p>
+                            <p className="meta-value">{formatCurrency(oneYear)}</p>
+                            <p className="meta-hint">Immediate + Year 1</p>
+                          </div>
+                          <div>
+                            <p className="meta-label">5-year total</p>
                             <p className="meta-value">{formatCurrency(fiveYear)}</p>
-                            <p className="meta-hint">Immediate remediation budget</p>
+                            <p className="meta-hint">Medium-term outlook</p>
                           </div>
                           <div>
-                            <p className="meta-label">10-year cost</p>
+                            <p className="meta-label">10-year total</p>
                             <p className="meta-value">{formatCurrency(tenYear)}</p>
-                            <p className="meta-hint">Medium-term upkeep</p>
-                          </div>
-                          <div>
-                            <p className="meta-label">15-year cost</p>
-                            <p className="meta-value">{formatCurrency(fifteenYear)}</p>
-                            <p className="meta-hint">Full lifecycle outlook</p>
+                            <p className="meta-hint">Full lifecycle cost</p>
                           </div>
                         </div>
 
@@ -1002,6 +1030,7 @@ function App() {
                                   100,
                                   Math.max(0, (entry.cost / profile.maxYearly) * 100)
                                 )}%`,
+                                backgroundColor: entry.isUpfront ? '#f97316' : '#10b981'
                               }}
                               title={`Year ${entry.year}: ${formatCurrency(entry.cost)}`}
                             />
@@ -1010,19 +1039,22 @@ function App() {
                       </div>
 
                         <div className="event-breakdown">
-                          <p className="event-breakdown__title">Scheduled work</p>
+                          <p className="event-breakdown__title">Cost schedule</p>
                           {scheduledEvents.length ? (
                             scheduledEvents.map((event) => (
                               <div className="event-row" key={`${profile.label}-${event.year}`}>
                                 <div>
-                                  <p className="event-year">Year {event.year}</p>
+                                  <p className="event-year">
+                                    Year {event.year} 
+                                    {event.isUpfront && <span className="upfront-badge"> • UPFRONT</span>}
+                                  </p>
                                   <p className="event-note">{event.scheduled_work}</p>
                                 </div>
                                 <span className="event-cost">{formatCurrency(event.cost)}</span>
                               </div>
                             ))
                           ) : (
-                            <p className="event-empty">No maintenance events are forecast within 15 years.</p>
+                            <p className="event-empty">No costs forecast within 10 years.</p>
                           )}
                         </div>
 
@@ -1312,7 +1344,7 @@ function App() {
                 <div>
                   <h2>{systemModalData.systemName}</h2>
                   <p className="horizon-modal__subtitle">
-                    {systemModalData.category} • Total 15-year cost: <strong>{formatCurrency(systemModalData.totalCost)}</strong>
+                    {systemModalData.category} • Total 10-year cost: <strong>{formatCurrency(systemModalData.totalCost)}</strong>
                   </p>
                   <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                     <span className={`severity-pill severity-${systemModalData.averageSeverity}`}>

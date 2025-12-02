@@ -4,237 +4,300 @@ import os
 import json
 import dotenv
 import asyncio
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 dotenv.load_dotenv()
 
 def load_damage_database(csv_path: str) -> pd.DataFrame:
+    """Load the CSV database of building components and their costs."""
     df = pd.read_csv(csv_path)
     return df
 
 def find_damage_in_csv(df: pd.DataFrame, damage_item: str) -> pd.DataFrame:
+    """Search for damage item in CSV database."""
     # Use regex=False to treat special characters literally (e.g., parentheses, brackets)
     matches = df[df['Item/Subitem'].str.contains(damage_item, case=False, na=False, regex=False)]
     return matches
 
+def parse_csv_data(item_data: Dict) -> Optional[Dict]:
+    """
+    Parse CSV data directly without LLM when possible.
+    Returns a structured dict with the data, or None if LLM is needed.
+    """
+    # Check if we have all the critical data
+    price = item_data.get('Price (EUR)')
+    unit = item_data.get('Unit')
+    lifespan = item_data.get('Lifespan (Years)')
+    price_type = item_data.get('Price Type')
+    
+    # If any critical field is missing or '-', we need LLM
+    if (price == '-' or pd.isna(price) or 
+        unit == '-' or pd.isna(unit) or
+        lifespan == '-' or pd.isna(lifespan) or
+        price_type == '-' or pd.isna(price_type)):
+        return None
+    
+    # We have complete data, parse it directly
+    try:
+        return {
+            'Category': str(item_data.get('Category', 'Building Component')),
+            'Item': str(item_data.get('Item/Subitem', 'Unknown')),
+            'lifespan_years': int(lifespan),
+            'price_type': str(price_type),
+            'price_EUR': float(price),
+            'unit': str(unit),
+            'source': 'csv_direct'
+        }
+    except (ValueError, TypeError):
+        # If parsing fails, fall back to LLM
+        return None
+
+
 def complete_missing_data_prompt(damage_item: str, partial_data: Dict) -> str:
-    """Generate prompt to complete missing data using LLM"""
+    """
+    Generate prompt to complete missing data using LLM.
+    Designed to get accurate, realistic cost estimates.
+    """
     is_completely_unknown = partial_data.get('Category') == 'Unknown'
     
     if is_completely_unknown:
         # Special prompt for completely unknown damage types
-        return f"""
-You are an expert in building maintenance and repair cost estimation.
+        return f"""You are an expert in building maintenance and repair cost estimation for Swiss/EU markets.
 
 The damage type "{damage_item}" was NOT found in the standard building components database.
-This appears to be a damage description rather than a standard building component.
 
-Please analyze this damage type and provide COMPREHENSIVE cost estimates:
+Analyze this damage and provide REALISTIC repair cost estimates:
 
-TASK:
-1. Identify what building category this damage likely belongs to
-2. Determine the affected component/system
-3. Provide realistic repair/replacement cost estimates
+IMPORTANT GUIDELINES:
+1. Distinguish between immediate repair needs vs. long-term maintenance
+2. For structural damage (walls, floors, ceilings): Minimum 150-300 EUR/m²
+3. Include ALL costs: materials, Swiss labor rates (80-120 EUR/hour), disposal, permits
+4. Add realistic markup: 20-30% for project overhead and contingencies
+5. Consider hidden damage that may be discovered during repair
 
-IMPORTANT PRICING GUIDELINES:
-- For structural damage (walls, floors, ceilings): Base costs start at 150-300 EUR/m² MINIMUM
-- For destroyed/severely damaged walls: 250-500 EUR/m² depending on material and complexity
-- Include ALL associated costs: materials, labor (80-120 EUR/hour), disposal, permits, hidden damages
-- Add 25-35% markup for realistic project costs (overhead, profit, contingencies)
-- Swiss/EU labor rates are HIGH - factor this in
-- Structural work often reveals additional problems - plan for 20-30% cost overruns
+DAMAGE-SPECIFIC ESTIMATES:
+- Wall damage/cracks: 250-500 EUR/m² for severe damage, 50-150 EUR/m² for minor
+- Water damage: Include source repair + affected area restoration + mold prevention
+- Mold remediation: 50-150 EUR/m² + source elimination
+- Electrical issues: 80-120 EUR/hour + materials + permits (min 300 EUR)
+- Broken windows: 300-1500 EUR per window
+- Paint damage: 30-60 EUR/m² for repainting
+- Plumbing leaks: 200-800 EUR for simple fixes, 1000+ EUR for major work
 
-DAMAGE TYPE SPECIFIC ESTIMATES:
-- Cracks: Consider if structural (expensive) or cosmetic (moderate)
-- Water damage/leaks: Include source repair + affected areas + mold remediation
-- Mold: Professional remediation 50-150 EUR/m² + source fix
-- Electrical issues: Licensed electrician 80-120 EUR/hour + materials + permits
-- Broken windows: 300-1500 EUR per window depending on size/type
-- Chipped paint: 30-60 EUR/m² for repainting
-- Rust: Depends on component - assess replacement needs
-- Sagging roof: 150-400 EUR/m² for structural repairs
-
-Return ONLY a valid JSON object with this structure:
+Return ONLY valid JSON:
 {{
-    "lifespan_years": <estimated years before next major work needed>,
-    "price_type": "<Replacement/Repair/Remediation/etc>",
-    "price_EUR": <realistic base cost - err on higher side>,
-    "unit": "<per piece/per m²/per m/per hour/etc>",
-    "category": "<best guess of building category>",
-    "reasoning": "<detailed explanation of your estimates and assumptions>"
-}}
-"""
+    "lifespan_years": <estimated years before next major work>,
+    "price_type": "<Repair/Replacement/Remediation>",
+    "price_EUR": <realistic base cost per unit>,
+    "unit": "<per piece/per m²/per m/per hour>",
+    "category": "<Building Envelope/Heating/Plumbing/Electrical/etc>",
+    "reasoning": "<brief explanation of cost basis>"
+}}"""
     else:
         # Original prompt for items found in database but with missing data
-        return f"""
-You are an expert in building maintenance and repair cost estimation.
+        return f"""You are an expert in building maintenance and repair cost estimation for Swiss/EU markets.
 
-Given this partial data about "{damage_item}":
-Category: {partial_data.get('Category', 'Unknown')}
-Item: {partial_data.get('Item/Subitem', 'Unknown')}
-Lifespan: {partial_data.get('Lifespan (Years)', 'Missing')} years
-Price Type: {partial_data.get('Price Type', 'Missing')}
-Price: {partial_data.get('Price (EUR)', 'Missing')} EUR
-Unit: {partial_data.get('Unit', 'Missing')}
+Item: "{damage_item}"
+Known data:
+- Category: {partial_data.get('Category', 'Unknown')}
+- Lifespan: {partial_data.get('Lifespan (Years)', 'Missing')} years
+- Price Type: {partial_data.get('Price Type', 'Missing')}
+- Price: {partial_data.get('Price (EUR)', 'Missing')} EUR
+- Unit: {partial_data.get('Unit', 'Missing')}
 
-Please provide REALISTIC and COMPREHENSIVE estimates for any missing data (marked as '-' or 'Missing').
-Consider industry standards for Swiss/European building maintenance.
+Complete the missing fields (marked as '-' or 'Missing') with REALISTIC estimates for Swiss/EU markets.
 
-IMPORTANT PRICING GUIDELINES:
-- For structural damage (walls, floors, ceilings): Base costs start at 150-300 EUR/m² MINIMUM
-- For destroyed/severely damaged walls: 250-500 EUR/m² depending on material and complexity
-- Include ALL associated costs: materials, labor (80-120 EUR/hour), disposal, permits, hidden damages
-- Add 25-35% markup for realistic project costs (overhead, profit, contingencies)
-- Swiss/EU labor rates are HIGH - factor this in
-- Structural work often reveals additional problems - plan for 20-30% cost overruns
+GUIDELINES:
+- Swiss labor: 80-120 EUR/hour
+- Materials markup: 20-30% over wholesale
+- Include installation/disposal costs
+- Be realistic, not optimistic
 
-For "destroyed" or "severe" damage, multiply typical repair costs by 1.5-2x.
-
-Return ONLY a valid JSON object with this structure:
+Return ONLY valid JSON:
 {{
-    "lifespan_years": <number or original if present>,
-    "price_type": "<Replacement/Repair/New Coat/etc>",
-    "price_EUR": <number - be realistic, not cheap>,
-    "unit": "<per piece/per m²/per m/etc>",
-    "reasoning": "<brief explanation of estimates>"
-}}
-"""
+    "lifespan_years": <number or use existing>,
+    "price_type": "<Replacement/Repair/New Coat>",
+    "price_EUR": <cost per unit>,
+    "unit": "<per piece/per m²/per m>",
+    "reasoning": "<brief explanation>"
+}}"""
 
-def predict_repair_schedule_prompt(damage_item: str, complete_data: Dict, severity: int) -> str:
-    """Generate prompt to predict repair schedule based on severity"""
-    return f"""
-You are an expert maintenance scheduler for building components.
 
-Item: {damage_item}
-Category: {complete_data.get('Category', 'Unknown')}
-Normal Lifespan: {complete_data.get('lifespan_years')} years
-Base Cost: {complete_data.get('price_EUR')} EUR {complete_data.get('unit')}
-Damage Severity: {severity}/5 (where 1 is minimal damage and 5 is critical/destroyed)
 
-Based on the severity level, create a REALISTIC multi-year repair and maintenance plan:
+def calculate_upfront_and_maintenance_prompt(damage_item: str, complete_data: Dict, severity: int) -> str:
+    """
+    Generate prompt to calculate UPFRONT repair cost and MAINTENANCE schedule.
+    This replaces the old repair schedule prompt with clearer separation.
+    """
+    return f"""You are an expert maintenance scheduler for building components in Swiss/EU markets.
 
-SEVERITY-BASED GUIDELINES:
-- Severity 5 (Critical/Destroyed): 
-  * IMMEDIATE action required (year 0-1)
-  * Multiply base cost by 1.8-2.5x for emergency repairs and associated damage
-  * Include temporary fixes, full repair/replacement, and follow-up inspections
-  * Add 30-40% contingency for hidden damage discovery
-  * Plan for 2-3 intervention points over 10 years
+COMPONENT INFORMATION:
+- Item: {damage_item}
+- Category: {complete_data.get('Category', 'Unknown')}
+- Normal Lifespan: {complete_data.get('lifespan_years')} years
+- Base Cost: {complete_data.get('price_EUR')} EUR {complete_data.get('unit')}
+- Damage Severity: {severity}/5 (1=minimal, 5=critical/destroyed)
 
-- Severity 4 (Severe):
-  * Urgent action within 1-2 years
-  * Multiply base cost by 1.4-1.8x
-  * Add 20-30% contingency
-  * Plan for 1-2 major interventions over 10 years
+YOUR TASK: Calculate TWO separate cost components:
 
-- Severity 3 (Moderate):
-  * Action within 2-4 years
-  * Use base cost + 15-25% buffer
-  * Plan for 1-2 interventions over 10 years
+1. UPFRONT REPAIR COST (if severity >= 2):
+   - This is the IMMEDIATE cost to fix the existing damage
+   - Apply severity multipliers:
+     * Severity 2 (Minor): 1.2-1.5x base cost
+     * Severity 3 (Moderate): 1.5-2.0x base cost
+     * Severity 4 (Severe): 2.0-2.8x base cost
+     * Severity 5 (Critical): 2.5-3.5x base cost
+   - Include emergency repair premium if severity >= 4
+   - Add 20-35% contingency for hidden damage
+   - If severity = 1, upfront cost should be 0 or minimal inspection cost
 
-- Severity 1-2 (Minor):
-  * Follow normal schedule
-  * Include regular maintenance every 3-4 years
-  * Use base cost with standard 10-15% buffer
+2. MAINTENANCE SCHEDULE (10-year outlook):
+   - Regular maintenance events to PREVENT future problems
+   - Based on normal lifespan, NOT on current damage
+   - Be MODERATE and REALISTIC:
+     * Most items: 1-2 maintenance events over 10 years
+     * Critical systems: Maybe 2-3 events
+     * Simple components: 0-1 events
+   - Typical maintenance costs: 10-20% of replacement cost
+   - Inspection costs: 150-300 EUR (only if truly necessary)
 
-IMPORTANT - Future Maintenance Schedule:
-- Be MODERATE and REALISTIC with future maintenance events
-- Don't over-schedule unnecessary inspections
-- For most items: 1-2 major interventions over 10 years is sufficient
-- Only include additional maintenance if truly necessary for the specific component
-- Inspections should be every 3-5 years, not more frequent unless critical systems
-- Cost for routine inspections: 150-300 EUR (don't add too many)
+IMPORTANT:
+- Upfront cost is a ONE-TIME expense (year 0 or year 1)
+- Maintenance is ongoing scheduled work
+- Don't double-count - if upfront replaces the component, adjust maintenance accordingly
+- Don't over-schedule maintenance
 
-For ALL severity levels:
-- Account for preventive maintenance to avoid future severe damage
-- Consider that initial repairs may need follow-up work
-- Factor in that building components interact (wall damage affects electrical, plumbing, etc.)
-
-Return ONLY a valid JSON object:
+Return ONLY valid JSON:
 {{
-    "next_repair_year": <year from now, 0-10>,
-    "repair_type": "<Emergency Repair/Replacement/Major Repair/Maintenance>",
-    "estimated_cost": <cost in EUR - be realistic and severe>,
-    "additional_maintenance": [
-        // Include 1-3 additional events MAX - be moderate, only what's truly necessary
-        {{"year": <0-10>, "type": "<description>", "cost": <EUR>}}
+    "upfront_repair": {{
+        "cost_EUR": <total upfront cost, 0 if severity=1>,
+        "description": "<what will be repaired/replaced>",
+        "severity_multiplier": <actual multiplier used>,
+        "includes_contingency": true
+    }},
+    "maintenance_schedule": [
+        {{
+            "year": <1-10>,
+            "type": "<Inspection/Maintenance/Minor Repair>",
+            "cost_EUR": <cost>,
+            "description": "<what maintenance work>"
+        }}
+        // 0-3 events total - be moderate!
     ],
-    "severity_impact": "<explanation of why these costs and timeline>"
-}}
-"""
+    "reasoning": "<explain the upfront cost calculation and maintenance plan>"
+}}"""
 
-def calculate_10year_projection(damage_item: str, repair_schedule: Dict, complete_data: Dict) -> Dict:
-    """Calculate 10-year cost projection numerically based on repair schedule"""
+
+
+def calculate_10year_projection(damage_item: str, cost_data: Dict, complete_data: Dict) -> Dict:
+    """
+    Calculate 10-year cost projection with separate upfront and maintenance costs.
+    Uses numerical calculation with inflation and contingency.
+    """
     INFLATION_RATE = 0.045  # 4.5% per year (realistic for Swiss building/construction costs)
-    CONTINGENCY_BUFFER = 0.20  # 20% contingency buffer for unforeseen costs (realistic for construction)
+    CONTINGENCY_BUFFER = 0.15  # 15% contingency buffer (applied to maintenance, upfront already includes it)
+    
     yearly_costs = []
     cumulative_cost = 0
     
-    # Create a schedule map for easy lookup
-    scheduled_events = {}
+    # Extract upfront and maintenance data
+    upfront = cost_data.get('upfront_repair', {})
+    upfront_cost = upfront.get('cost_EUR', 0)
+    maintenance_schedule = cost_data.get('maintenance_schedule', [])
     
-    # Add main repair/replacement
-    next_repair_year = repair_schedule.get('next_repair_year', 0)
-    if 0 < next_repair_year <= 10:
-        scheduled_events[next_repair_year] = {
-            'type': repair_schedule.get('repair_type', 'Repair'),
-            'cost': repair_schedule.get('estimated_cost', 0)
-        }
+    # Create schedule map for maintenance
+    maintenance_map = {}
+    for maint in maintenance_schedule:
+        year = maint.get('year', 0)
+        if 1 <= year <= 10:
+            if year not in maintenance_map:
+                maintenance_map[year] = []
+            maintenance_map[year].append(maint)
     
-    # Add additional maintenance events
-    for maint in repair_schedule.get('additional_maintenance', []):
-        maint_year = maint.get('year', 0)
-        if 0 < maint_year <= 10:
-            if maint_year in scheduled_events:
-                # Add to existing year
-                scheduled_events[maint_year]['cost'] += maint.get('cost', 0)
-                scheduled_events[maint_year]['type'] += f" + {maint.get('type', 'Maintenance')}"
-            else:
-                scheduled_events[maint_year] = {
-                    'type': maint.get('type', 'Maintenance'),
-                    'cost': maint.get('cost', 0)
-                }
+    # Year 0 breakdown (upfront cost)
+    upfront_inflated = upfront_cost  # No inflation for immediate cost
+    cumulative_cost += upfront_inflated
     
-    # Generate yearly breakdown
+    year_0_data = {
+        'year': 0,
+        'upfront_cost': round(upfront_inflated, 2),
+        'maintenance_cost': 0,
+        'total_cost': round(upfront_inflated, 2),
+        'cumulative_cost': round(cumulative_cost, 2),
+        'work_description': upfront.get('description', 'Initial repair') if upfront_cost > 0 else 'No immediate repair needed',
+        'is_upfront': True
+    }
+    
+    # Generate yearly breakdown (years 1-10)
     for year in range(1, 11):
-        if year in scheduled_events:
-            event = scheduled_events[year]
-            # Apply inflation and contingency buffer to the cost
-            base_cost = event['cost'] * (1 + CONTINGENCY_BUFFER)
-            inflated_cost = base_cost * ((1 + INFLATION_RATE) ** (year - 1))
-            scheduled_work = event['type']
-            notes = f"Scheduled {event['type'].lower()} with {INFLATION_RATE*100}% inflation + {CONTINGENCY_BUFFER*100}% contingency"
-        else:
-            inflated_cost = 0
-            scheduled_work = "none"
-            notes = "No scheduled work"
+        maintenance_cost = 0
+        descriptions = []
         
-        cumulative_cost += inflated_cost
+        if year in maintenance_map:
+            for maint in maintenance_map[year]:
+                base_maint_cost = maint.get('cost_EUR', 0)
+                # Apply inflation and contingency to maintenance
+                inflated_maint = base_maint_cost * (1 + CONTINGENCY_BUFFER) * ((1 + INFLATION_RATE) ** (year - 1))
+                maintenance_cost += inflated_maint
+                descriptions.append(maint.get('description', maint.get('type', 'Maintenance')))
+        
+        cumulative_cost += maintenance_cost
         
         yearly_costs.append({
             'year': year,
-            'scheduled_work': scheduled_work,
-            'cost': round(inflated_cost, 2),
+            'upfront_cost': 0,  # Upfront is only year 0
+            'maintenance_cost': round(maintenance_cost, 2),
+            'total_cost': round(maintenance_cost, 2),
             'cumulative_cost': round(cumulative_cost, 2),
-            'notes': notes
+            'work_description': ' + '.join(descriptions) if descriptions else 'No scheduled work',
+            'is_upfront': False
         })
     
-    # Generate summary
-    num_events = len([y for y in yearly_costs if y['cost'] > 0])
-    summary = f"Total of {num_events} maintenance/repair event(s) scheduled over 10 years. "
-    summary += f"Costs include {INFLATION_RATE*100}% annual inflation and {CONTINGENCY_BUFFER*100}% contingency buffer for conservative planning."
+    # Calculate summary statistics
+    total_maintenance = sum(y['maintenance_cost'] for y in yearly_costs)
+    num_maintenance_events = len([y for y in yearly_costs if y['maintenance_cost'] > 0])
+    
+    summary = f"Upfront repair: {formatCurrency(upfront_cost)}. "
+    summary += f"{num_maintenance_events} maintenance event(s) over 10 years totaling {formatCurrency(total_maintenance)}. "
+    summary += f"Costs include {INFLATION_RATE*100}% annual inflation."
+    
+    # Key milestones (years 0, 1, 5, 10)
+    key_years = {}
+    key_years[0] = {
+        'cumulative_cost': year_0_data['cumulative_cost'],
+        'work_description': year_0_data['work_description']
+    }
+    for yc in yearly_costs:
+        if yc['year'] in [1, 5, 10]:
+            key_years[yc['year']] = {
+                'cumulative_cost': yc['cumulative_cost'],
+                'work_description': yc['work_description']
+            }
     
     return {
-        'yearly_costs': yearly_costs,
+        'upfront_cost': round(upfront_cost, 2),
+        'total_maintenance_cost': round(total_maintenance, 2),
         'total_10year_cost': round(cumulative_cost, 2),
-        'summary': summary
+        'year_0': year_0_data,
+        'yearly_costs': yearly_costs,
+        'key_milestones': key_years,
+        'summary': summary,
+        'breakdown': {
+            'immediate_repair_pct': round((upfront_cost / cumulative_cost * 100) if cumulative_cost > 0 else 0, 1),
+            'ongoing_maintenance_pct': round((total_maintenance / cumulative_cost * 100) if cumulative_cost > 0 else 0, 1)
+        }
     }
+
+def formatCurrency(value):
+    """Helper function to format currency values."""
+    return f"{value:,.2f} EUR"
+
 
 async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
     """Call Gemini AI model with quota handling"""
     if use_mock:
         # Mock responses for testing without API quota
-        if "complete missing data" in prompt.lower():
+        if "complete missing data" in prompt.lower() or "complete the missing" in prompt.lower():
             await asyncio.sleep(0.1)  # Simulate API delay
             return json.dumps({
                 "lifespan_years": 20,
@@ -243,16 +306,20 @@ async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
                 "unit": "per piece",
                 "reasoning": "Mock data for testing"
             })
-        elif "predict repair schedule" in prompt.lower():
+        elif "calculate upfront" in prompt.lower() or "upfront repair cost" in prompt.lower():
             await asyncio.sleep(0.1)  # Simulate API delay
             return json.dumps({
-                "next_repair_year": 3,
-                "repair_type": "Maintenance",
-                "estimated_cost": 300,
-                "additional_maintenance": [
-                    {"year": 5, "type": "Inspection", "cost": 100}
+                "upfront_repair": {
+                    "cost_EUR": 1200,
+                    "description": "Replace damaged component with modern equivalent",
+                    "severity_multiplier": 2.0,
+                    "includes_contingency": True
+                },
+                "maintenance_schedule": [
+                    {"year": 5, "type": "Inspection", "cost_EUR": 200, "description": "Mid-term inspection"},
+                    {"year": 9, "type": "Minor maintenance", "cost_EUR": 350, "description": "Preventive maintenance"}
                 ],
-                "severity_impact": "Mock severity impact"
+                "reasoning": "Mock calculation for testing"
             })
 
     # Run API call in thread pool to avoid blocking
@@ -264,8 +331,12 @@ async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
     )
     return response.text
 
+
 async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_mock: bool = False) -> Dict:
-    """Main function to analyze damage and generate cost projections"""
+    """
+    Main function to analyze damage and generate cost projections.
+    Now with clear separation between upfront repair and maintenance costs.
+    """
     
     print(f"\n{'='*60}")
     print(f"Analyzing: {damage_item}")
@@ -289,87 +360,151 @@ async def analyze_damage(damage_item: str, severity: int, csv_path: str, use_moc
             'Price (EUR)': '-',
             'Unit': '-'
         }
-        has_missing = True  # Force LLM completion
+        complete_data = None
     else:
         print(f"✅ Found {len(matches)} match(es)")
         item_data = matches.iloc[0].to_dict()
         print(f"   Category: {item_data['Category']}")
         print(f"   Item: {item_data['Item/Subitem']}")
-        has_missing = (item_data['Price (EUR)'] == '-' or 
-                       pd.isna(item_data['Price (EUR)']) or
-                       item_data['Price Type'] == '-')
+        
+        # Try to parse CSV data directly (without LLM)
+        complete_data = parse_csv_data(item_data)
+        if complete_data:
+            print(f"✅ Complete data from CSV: {complete_data['price_EUR']} EUR {complete_data['unit']}")
     
-    # Step 2: Complete missing data with LLM
-    print("\nStep 2: Completing missing data with LLM...")
-    
-    if has_missing:
+    # Step 2: Complete missing data with LLM if needed
+    if not complete_data:
+        print("\nStep 2: Completing missing data with LLM...")
         prompt = complete_missing_data_prompt(damage_item, item_data)
         response = await call_ai_model(prompt, use_mock)
-        complete_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
         
-        # Use category from LLM if it was unknown, otherwise use database category
-        if item_data.get('Category') == 'Unknown':
-            complete_data['Category'] = complete_data.get('category', 'Building Envelope')
-            print(f"✅ LLM estimated category: {complete_data['Category']}")
-        else:
-            complete_data['Category'] = item_data['Category']
-        
-        complete_data['Item'] = item_data['Item/Subitem']
-        print(f"✅ Completed data: {complete_data['price_EUR']} EUR {complete_data['unit']}")
-        if 'reasoning' in complete_data:
-            print(f"   Reasoning: {complete_data['reasoning']}")
+        try:
+            complete_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
+            
+            # Use category from LLM if it was unknown, otherwise use database category
+            if item_data.get('Category') == 'Unknown':
+                complete_data['Category'] = complete_data.get('category', 'Building Envelope')
+                print(f"✅ LLM estimated category: {complete_data['Category']}")
+            else:
+                complete_data['Category'] = item_data['Category']
+            
+            complete_data['Item'] = item_data['Item/Subitem']
+            complete_data['source'] = 'llm_completed'
+            print(f"✅ Completed data: {complete_data['price_EUR']} EUR {complete_data['unit']}")
+            if 'reasoning' in complete_data:
+                print(f"   Reasoning: {complete_data['reasoning']}")
+        except json.JSONDecodeError as e:
+            print(f"❌ Error parsing LLM response: {e}")
+            # Fallback to default values
+            complete_data = {
+                'Category': item_data.get('Category', 'Unknown'),
+                'Item': damage_item,
+                'lifespan_years': 20,
+                'price_type': 'Repair',
+                'price_EUR': 1000,
+                'unit': 'per piece',
+                'source': 'fallback'
+            }
     else:
-        complete_data = {
-            'Category': item_data['Category'],
-            'Item': item_data['Item/Subitem'],
-            'lifespan_years': item_data['Lifespan (Years)'],
-            'price_type': item_data['Price Type'],
-            'price_EUR': item_data['Price (EUR)'],
-            'unit': item_data['Unit']
-        }
-        print(f"✅ Data already complete: {complete_data['price_EUR']} EUR {complete_data['unit']}")
+        print("\nStep 2: Data complete from CSV, skipping LLM")
     
-    # Step 3: Predict repair schedule
-    print("\nStep 3: Predicting repair schedule based on severity...")
-    prompt = predict_repair_schedule_prompt(damage_item, complete_data, severity)
+    # Step 3: Calculate upfront repair and maintenance schedule
+    print("\nStep 3: Calculating upfront repair cost and maintenance schedule...")
+    prompt = calculate_upfront_and_maintenance_prompt(damage_item, complete_data, severity)
     response = await call_ai_model(prompt, use_mock)
-    repair_schedule = json.loads(response.strip().replace('```json', '').replace('```', ''))
-    print(f"✅ Next repair in year: {repair_schedule['next_repair_year']}")
-    print(f"   Type: {repair_schedule['repair_type']}")
-    print(f"   Estimated cost: {repair_schedule['estimated_cost']} EUR")
+    
+    try:
+        cost_data = json.loads(response.strip().replace('```json', '').replace('```', ''))
+        upfront = cost_data.get('upfront_repair', {})
+        maintenance = cost_data.get('maintenance_schedule', [])
+        
+        print(f"✅ Upfront repair cost: {upfront.get('cost_EUR', 0)} EUR")
+        print(f"   Description: {upfront.get('description', 'N/A')}")
+        print(f"✅ Maintenance events scheduled: {len(maintenance)}")
+        for maint in maintenance:
+            print(f"   Year {maint.get('year')}: {maint.get('type')} - {maint.get('cost_EUR')} EUR")
+    except json.JSONDecodeError as e:
+        print(f"❌ Error parsing cost calculation response: {e}")
+        # Fallback cost calculation
+        base_cost = complete_data.get('price_EUR', 1000)
+        severity_mult = {1: 0, 2: 1.3, 3: 1.7, 4: 2.3, 5: 3.0}.get(severity, 1.5)
+        cost_data = {
+            'upfront_repair': {
+                'cost_EUR': base_cost * severity_mult if severity >= 2 else 0,
+                'description': f'Repair/replacement of {damage_item}',
+                'severity_multiplier': severity_mult,
+                'includes_contingency': True
+            },
+            'maintenance_schedule': [],
+            'reasoning': 'Fallback calculation due to parsing error'
+        }
     
     # Step 4: Calculate 10-year cost table numerically
     print("\nStep 4: Calculating 10-year cost projection table...")
-    ten_year_table = calculate_10year_projection(damage_item, repair_schedule, complete_data)
-    print(f"✅ 10-year total cost: {ten_year_table['total_10year_cost']} EUR")
+    ten_year_table = calculate_10year_projection(damage_item, cost_data, complete_data)
+    print(f"✅ Upfront cost: {ten_year_table['upfront_cost']} EUR")
+    print(f"✅ Total maintenance (10-year): {ten_year_table['total_maintenance_cost']} EUR")
+    print(f"✅ Grand total (10-year): {ten_year_table['total_10year_cost']} EUR")
     
     return {
         'damage_item': damage_item,
         'severity': severity,
-        'complete_data': complete_data,
-        'repair_schedule': repair_schedule,
-        'ten_year_projection': ten_year_table
+        'component_data': {
+            'category': complete_data.get('Category'),
+            'item': complete_data.get('Item'),
+            'lifespan_years': complete_data.get('lifespan_years'),
+            'base_price': complete_data.get('price_EUR'),
+            'unit': complete_data.get('unit'),
+            'data_source': complete_data.get('source', 'unknown')
+        },
+        'cost_breakdown': {
+            'upfront_repair': cost_data.get('upfront_repair', {}),
+            'maintenance_schedule': cost_data.get('maintenance_schedule', []),
+            'reasoning': cost_data.get('reasoning', '')
+        },
+        'projection_10year': ten_year_table
     }
 
+
+
 def print_cost_table(analysis_result: Dict):
-    """Print a formatted 10-year cost table"""
+    """Print a formatted 10-year cost table with upfront/maintenance split"""
     if not analysis_result:
         return
     
     print(f"\n{'='*80}")
     print(f"10-YEAR COST PROJECTION: {analysis_result['damage_item']}")
+    print(f"Category: {analysis_result['component_data']['category']}")
     print(f"{'='*80}")
     
-    table = analysis_result['ten_year_projection']['yearly_costs']
-    print(f"\n{'Year':<6} {'Scheduled Work':<30} {'Cost (EUR)':<12} {'Cumulative (EUR)':<15} {'Notes'}")
+    # Print upfront cost
+    upfront = analysis_result['cost_breakdown']['upfront_repair']
+    print(f"\n{'UPFRONT REPAIR COST (Year 0)':^80}")
     print(f"{'-'*80}")
+    print(f"Cost: {upfront.get('cost_EUR', 0):,.2f} EUR")
+    print(f"Description: {upfront.get('description', 'N/A')}")
+    print(f"Severity multiplier: {upfront.get('severity_multiplier', 1.0):.1f}x")
     
-    for row in table:
-        print(f"{row['year']:<6} {row['scheduled_work']:<30} {row['cost']:<12.2f} {row['cumulative_cost']:<15.2f} {row['notes']}")
-    
+    # Print maintenance schedule
+    print(f"\n{'MAINTENANCE SCHEDULE (Years 1-10)':^80}")
     print(f"{'-'*80}")
-    print(f"Total 10-Year Cost: {analysis_result['ten_year_projection']['total_10year_cost']} EUR")
-    print(f"\nSummary: {analysis_result['ten_year_projection']['summary']}")
+    table = analysis_result['projection_10year']['yearly_costs']
+    if any(row['maintenance_cost'] > 0 for row in table):
+        print(f"{'Year':<6} {'Work Description':<40} {'Cost (EUR)':<15} {'Cumulative (EUR)'}")
+        print(f"{'-'*80}")
+        for row in table:
+            if row['maintenance_cost'] > 0:
+                print(f"{row['year']:<6} {row['work_description']:<40} {row['maintenance_cost']:<15,.2f} {row['cumulative_cost']:<15,.2f}")
+    else:
+        print("No maintenance scheduled within 10 years")
+    
+    # Print summary
+    proj = analysis_result['projection_10year']
+    print(f"\n{'-'*80}")
+    print(f"Upfront repair cost: {proj['upfront_cost']:,.2f} EUR ({proj['breakdown']['immediate_repair_pct']}%)")
+    print(f"Total maintenance (10-year): {proj['total_maintenance_cost']:,.2f} EUR ({proj['breakdown']['ongoing_maintenance_pct']}%)")
+    print(f"GRAND TOTAL (10-year): {proj['total_10year_cost']:,.2f} EUR")
+    print(f"\n{proj['summary']}")
     print(f"{'='*80}\n")
 
 def save_analysis_to_file(analysis_result: Dict, file_path: str):
@@ -377,6 +512,7 @@ def save_analysis_to_file(analysis_result: Dict, file_path: str):
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(analysis_result, f, indent=2, ensure_ascii=False)
     print(f"Analysis saved to: {file_path}")
+
 
 
 async def analyze_damage_with_semaphore(semaphore: asyncio.Semaphore, test: Dict, csv_path: str, use_mock: bool, test_num: int, total: int) -> Dict:
@@ -414,9 +550,11 @@ async def run_analyses_async(test_cases: List[Dict], csv_path: str, use_mock: bo
     results = await asyncio.gather(*tasks)
     return [r for r in results if r is not None]
 
+
 async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str = None, use_mock: bool = False, max_concurrent: int = 5) -> Dict:
     """
-    Main function for API endpoint - analyzes multiple damage items and returns structured response
+    Main function for API endpoint - analyzes multiple damage items and returns structured response.
+    Now with clear upfront/maintenance cost separation.
     
     Args:
         damage_items: List of damage items with format:
@@ -429,7 +567,7 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
         max_concurrent: Maximum concurrent API calls
     
     Returns:
-        Dictionary with complete analysis results in API-ready format
+        Dictionary with complete analysis results in API-ready format with upfront/maintenance split
     """
     # Default CSV path relative to backend directory
     if csv_path is None:
@@ -473,9 +611,11 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
             })
     
     # Calculate totals
-    grand_total = sum(r['ten_year_projection']['total_10year_cost'] for r in successful_results)
+    grand_total = sum(r['projection_10year']['total_10year_cost'] for r in successful_results)
+    total_upfront = sum(r['projection_10year']['upfront_cost'] for r in successful_results)
+    total_maintenance = sum(r['projection_10year']['total_maintenance_cost'] for r in successful_results)
     
-    # Build response
+    # Build response with clear cost separation
     response = {
         "status": "success",
         "timestamp": pd.Timestamp.now().isoformat(),
@@ -483,7 +623,15 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
             "total_items_analyzed": len(successful_results),
             "total_items_requested": len(damage_items),
             "failed_items_count": len(failed_items),
-            "grand_total_10year_cost_EUR": round(grand_total, 2)
+            "cost_breakdown": {
+                "total_upfront_cost_EUR": round(total_upfront, 2),
+                "total_maintenance_cost_EUR": round(total_maintenance, 2),
+                "grand_total_10year_cost_EUR": round(grand_total, 2)
+            },
+            "cost_split_percentage": {
+                "upfront_pct": round((total_upfront / grand_total * 100) if grand_total > 0 else 0, 1),
+                "maintenance_pct": round((total_maintenance / grand_total * 100) if grand_total > 0 else 0, 1)
+            }
         },
         "analyses": successful_results,
         "failed_items": failed_items if failed_items else None
@@ -491,14 +639,16 @@ async def analyze_damages_for_endpoint(damage_items: List[Dict], csv_path: str =
     
     return response
 
+
 if __name__ == "__main__":
     # Configuration
     CSV_PATH = "../dataset/message.csv"
     USE_MOCK = True  # Set to False to use real API (requires quota)
     MAX_CONCURRENT = 5  # Maximum concurrent API calls
     
-    print("\nBUILDING DAMAGE ANALYSIS SYSTEM")
+    print("\nBUILDING DAMAGE ANALYSIS SYSTEM v2.0")
     print("="*80)
+    print("NEW: Upfront repair costs vs. maintenance costs")
     print(f"Max concurrent analyses: {MAX_CONCURRENT}")
     print("="*80)
     
@@ -506,15 +656,15 @@ if __name__ == "__main__":
     test_cases = [
         {
             "item": "Boiler",
-            "severity": 5
+            "severity": 5  # Critical - expect high upfront cost
         },
         {
             "item": "Thermostatic Radiator Valves",
-            "severity": 3
+            "severity": 3  # Moderate - some upfront, some maintenance
         },
         {
             "item": "Air Conditioning Units",
-            "severity": 1
+            "severity": 1  # Minimal - mostly maintenance only
         }
     ]
     
@@ -526,13 +676,16 @@ if __name__ == "__main__":
         max_concurrent=MAX_CONCURRENT
     ))
     
-    # Print summary
+    # Print summary with cost breakdown
     print(f"\n{'='*80}")
     print(f"ANALYSIS COMPLETE")
     print(f"{'='*80}")
     print(f"Status: {response['status']}")
     print(f"Items analyzed: {response['summary']['total_items_analyzed']}/{response['summary']['total_items_requested']}")
-    print(f"Grand Total (10 years): {response['summary']['grand_total_10year_cost_EUR']} EUR")
+    print(f"\nCOST BREAKDOWN:")
+    print(f"  Upfront repairs: {response['summary']['cost_breakdown']['total_upfront_cost_EUR']:,.2f} EUR ({response['summary']['cost_split_percentage']['upfront_pct']}%)")
+    print(f"  10-year maintenance: {response['summary']['cost_breakdown']['total_maintenance_cost_EUR']:,.2f} EUR ({response['summary']['cost_split_percentage']['maintenance_pct']}%)")
+    print(f"  GRAND TOTAL: {response['summary']['cost_breakdown']['grand_total_10year_cost_EUR']:,.2f} EUR")
     
     if response['failed_items']:
         print(f"\nWARNING: Failed items: {response['summary']['failed_items_count']}")
@@ -543,8 +696,11 @@ if __name__ == "__main__":
     print("Individual Results:")
     print(f"{'='*80}")
     for analysis in response['analyses']:
-        total = analysis['ten_year_projection']['total_10year_cost']
-        print(f"   - {analysis['damage_item']}: {total} EUR")
+        proj = analysis['projection_10year']
+        print(f"\n{analysis['damage_item']} (Severity {analysis['severity']}/5):")
+        print(f"  - Upfront: {proj['upfront_cost']:,.2f} EUR")
+        print(f"  - Maintenance: {proj['total_maintenance_cost']:,.2f} EUR")
+        print(f"  - Total: {proj['total_10year_cost']:,.2f} EUR")
     
     # Save complete response
     save_analysis_to_file(response, "api_response.json")
@@ -554,51 +710,70 @@ if __name__ == "__main__":
     print(f"{'='*80}\n")
     
     # Print example JSON format for API documentation
-    print("\nAPI Response Format Example:")
+    print("\nNEW API Response Format Example:")
     print("="*80)
     example_format = {
         "status": "success",
-        "timestamp": "2025-11-22T10:30:00.123456",
+        "timestamp": "2025-11-29T10:30:00.123456",
         "summary": {
             "total_items_analyzed": 3,
             "total_items_requested": 3,
             "failed_items_count": 0,
-            "grand_total_10year_cost_EUR": 1200.50
+            "cost_breakdown": {
+                "total_upfront_cost_EUR": 8500.00,
+                "total_maintenance_cost_EUR": 2150.00,
+                "grand_total_10year_cost_EUR": 10650.00
+            },
+            "cost_split_percentage": {
+                "upfront_pct": 79.8,
+                "maintenance_pct": 20.2
+            }
         },
         "analyses": [
             {
                 "damage_item": "Boiler",
                 "severity": 5,
-                "complete_data": {
-                    "Category": "Heating / Ventilation / Climate",
-                    "Item": "Boiler",
+                "component_data": {
+                    "category": "Heating / Ventilation / Climate",
+                    "item": "Boiler",
                     "lifespan_years": 20,
-                    "price_type": "Replacement",
-                    "price_EUR": 5000,
-                    "unit": "per piece"
+                    "base_price": 5000,
+                    "unit": "per piece",
+                    "data_source": "csv_direct"
                 },
-                "repair_schedule": {
-                    "next_repair_year": 2,
-                    "repair_type": "Replacement",
-                    "estimated_cost": 5000,
-                    "additional_maintenance": [
-                        {"year": 1, "type": "Inspection", "cost": 200}
+                "cost_breakdown": {
+                    "upfront_repair": {
+                        "cost_EUR": 7500,
+                        "description": "Emergency replacement of critical boiler",
+                        "severity_multiplier": 3.0,
+                        "includes_contingency": True
+                    },
+                    "maintenance_schedule": [
+                        {"year": 5, "type": "Inspection", "cost_EUR": 250, "description": "System inspection"},
+                        {"year": 9, "type": "Minor maintenance", "cost_EUR": 400, "description": "Preventive service"}
                     ],
-                    "severity_impact": "Critical severity requires immediate attention"
+                    "reasoning": "Critical severity requires immediate replacement with 30-40% contingency"
                 },
-                "ten_year_projection": {
+                "projection_10year": {
+                    "upfront_cost": 7500.00,
+                    "total_maintenance_cost": 750.00,
+                    "total_10year_cost": 8250.00,
+                    "year_0": {
+                        "year": 0,
+                        "upfront_cost": 7500.00,
+                        "maintenance_cost": 0,
+                        "total_cost": 7500.00,
+                        "cumulative_cost": 7500.00,
+                        "work_description": "Emergency replacement of critical boiler",
+                        "is_upfront": True
+                    },
                     "yearly_costs": [
-                        {
-                            "year": 1,
-                            "scheduled_work": "Inspection",
-                            "cost": 200.0,
-                            "cumulative_cost": 200.0,
-                            "notes": "Scheduled inspection with 2.0% inflation"
-                        },
-                        # ... years 2-10
+                        # Years 1-10 with maintenance events
                     ],
-                    "total_10year_cost": 5200.50,
-                    "summary": "Total of 2 maintenance/repair event(s) scheduled over 10 years."
+                    "breakdown": {
+                        "immediate_repair_pct": 90.9,
+                        "ongoing_maintenance_pct": 9.1
+                    }
                 }
             }
             # ... more analyses

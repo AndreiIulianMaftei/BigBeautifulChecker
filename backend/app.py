@@ -328,26 +328,36 @@ def generate_cost_graph(pricing_result):
     if not analyses:
         return None
 
-    years = list(range(1, 16))
+    years = list(range(1, 11))  # 1-10 years only
+    key_years = [1, 5, 10]  # Important milestones
     fig, ax = plt.subplots(figsize=(6, 4))
 
     for analysis in analyses:
-        yearly_costs = analysis.get("ten_year_projection", {}).get("yearly_costs", [])
+        yearly_costs = analysis.get("projection_10year", {}).get("yearly_costs", [])
         cumulative = []
-        running_total = 0
         cost_lookup = {
-            int(item.get("year", 0)): float(item.get("cost", 0))
+            int(item.get("year", 0)): float(item.get("cumulative_cost", 0))
             for item in yearly_costs
             if item.get("year") is not None
         }
         for year in years:
-            running_total += cost_lookup.get(year, 0)
-            cumulative.append(running_total)
-        ax.plot(years, cumulative, label=analysis.get("damage_item", "Damage"), linewidth=2)
+            cumulative.append(cost_lookup.get(year, 0))
+        
+        line, = ax.plot(years, cumulative, label=analysis.get("damage_item", "Damage"), linewidth=2)
+        
+        # Highlight key years (1, 5, 10) with markers
+        key_cumulative = [cost_lookup.get(y, 0) for y in key_years]
+        ax.scatter(key_years, key_cumulative, color=line.get_color(), s=80, zorder=5, edgecolors='white', linewidths=1.5)
 
+    # Add vertical lines at key years
+    for ky in key_years:
+        ax.axvline(x=ky, color='gray', linestyle='--', alpha=0.3)
+    
     ax.set_xlabel("Year")
-    ax.set_ylabel("Cumulative cost (CHF)")
-    ax.set_title("15-year cost projection")
+    ax.set_ylabel("Cumulative cost (EUR)")
+    ax.set_title("10-Year Cost Projection")
+    ax.set_xticks(years)
+    ax.set_xlim(0.5, 10.5)
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8)
     fig.tight_layout()

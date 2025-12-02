@@ -1,0 +1,513 @@
+{
+  "status": "success",
+  "timestamp": "2025-11-29T22:03:02.113906",
+  "summary": {
+    "total_items_analyzed": 3,
+    "total_items_requested": 3,
+    "failed_items_count": 0,
+    "cost_breakdown": {
+      "total_upfront_cost_EUR": 3600,
+      "total_maintenance_cost_EUR": 2540.04,
+      "grand_total_10year_cost_EUR": 6140.01
+    },
+    "cost_split_percentage": {
+      "upfront_pct": 58.6,
+      "maintenance_pct": 41.4
+    }
+  },
+  "analyses": [
+    {
+      "damage_item": "Boiler",
+      "severity": 5,
+      "component_data": {
+        "category": "Heating / Ventilation / Climate",
+        "item": "Boiler",
+        "lifespan_years": 20,
+        "base_price": 500,
+        "unit": "per piece",
+        "data_source": "llm_completed"
+      },
+      "cost_breakdown": {
+        "upfront_repair": {
+          "cost_EUR": 1200,
+          "description": "Replace damaged component with modern equivalent",
+          "severity_multiplier": 2.0,
+          "includes_contingency": true
+        },
+        "maintenance_schedule": [
+          {
+            "year": 5,
+            "type": "Inspection",
+            "cost_EUR": 200,
+            "description": "Mid-term inspection"
+          },
+          {
+            "year": 9,
+            "type": "Minor maintenance",
+            "cost_EUR": 350,
+            "description": "Preventive maintenance"
+          }
+        ],
+        "reasoning": "Mock calculation for testing"
+      },
+      "projection_10year": {
+        "upfront_cost": 1200,
+        "total_maintenance_cost": 846.68,
+        "total_10year_cost": 2046.67,
+        "year_0": {
+          "year": 0,
+          "upfront_cost": 1200,
+          "maintenance_cost": 0,
+          "total_cost": 1200,
+          "cumulative_cost": 1200,
+          "work_description": "Replace damaged component with modern equivalent",
+          "is_upfront": true
+        },
+        "yearly_costs": [
+          {
+            "year": 1,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 2,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 3,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 4,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 5,
+            "upfront_cost": 0,
+            "maintenance_cost": 274.28,
+            "total_cost": 274.28,
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection",
+            "is_upfront": false
+          },
+          {
+            "year": 6,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 7,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 8,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 9,
+            "upfront_cost": 0,
+            "maintenance_cost": 572.4,
+            "total_cost": 572.4,
+            "cumulative_cost": 2046.67,
+            "work_description": "Preventive maintenance",
+            "is_upfront": false
+          },
+          {
+            "year": 10,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          }
+        ],
+        "key_milestones": {
+          "0": {
+            "cumulative_cost": 1200,
+            "work_description": "Replace damaged component with modern equivalent"
+          },
+          "1": {
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work"
+          },
+          "5": {
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection"
+          },
+          "10": {
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work"
+          }
+        },
+        "summary": "Upfront repair: 1,200.00 EUR. 2 maintenance event(s) over 10 years totaling 846.68 EUR. Costs include 4.5% annual inflation.",
+        "breakdown": {
+          "immediate_repair_pct": 58.6,
+          "ongoing_maintenance_pct": 41.4
+        }
+      }
+    },
+    {
+      "damage_item": "Thermostatic Radiator Valves",
+      "severity": 3,
+      "component_data": {
+        "category": "Heating / Ventilation / Climate",
+        "item": "Valves: Thermostatic Radiator Valves",
+        "lifespan_years": 20,
+        "base_price": 350.0,
+        "unit": "per piece",
+        "data_source": "csv_direct"
+      },
+      "cost_breakdown": {
+        "upfront_repair": {
+          "cost_EUR": 1200,
+          "description": "Replace damaged component with modern equivalent",
+          "severity_multiplier": 2.0,
+          "includes_contingency": true
+        },
+        "maintenance_schedule": [
+          {
+            "year": 5,
+            "type": "Inspection",
+            "cost_EUR": 200,
+            "description": "Mid-term inspection"
+          },
+          {
+            "year": 9,
+            "type": "Minor maintenance",
+            "cost_EUR": 350,
+            "description": "Preventive maintenance"
+          }
+        ],
+        "reasoning": "Mock calculation for testing"
+      },
+      "projection_10year": {
+        "upfront_cost": 1200,
+        "total_maintenance_cost": 846.68,
+        "total_10year_cost": 2046.67,
+        "year_0": {
+          "year": 0,
+          "upfront_cost": 1200,
+          "maintenance_cost": 0,
+          "total_cost": 1200,
+          "cumulative_cost": 1200,
+          "work_description": "Replace damaged component with modern equivalent",
+          "is_upfront": true
+        },
+        "yearly_costs": [
+          {
+            "year": 1,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 2,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 3,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 4,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 5,
+            "upfront_cost": 0,
+            "maintenance_cost": 274.28,
+            "total_cost": 274.28,
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection",
+            "is_upfront": false
+          },
+          {
+            "year": 6,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 7,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 8,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 9,
+            "upfront_cost": 0,
+            "maintenance_cost": 572.4,
+            "total_cost": 572.4,
+            "cumulative_cost": 2046.67,
+            "work_description": "Preventive maintenance",
+            "is_upfront": false
+          },
+          {
+            "year": 10,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          }
+        ],
+        "key_milestones": {
+          "0": {
+            "cumulative_cost": 1200,
+            "work_description": "Replace damaged component with modern equivalent"
+          },
+          "1": {
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work"
+          },
+          "5": {
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection"
+          },
+          "10": {
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work"
+          }
+        },
+        "summary": "Upfront repair: 1,200.00 EUR. 2 maintenance event(s) over 10 years totaling 846.68 EUR. Costs include 4.5% annual inflation.",
+        "breakdown": {
+          "immediate_repair_pct": 58.6,
+          "ongoing_maintenance_pct": 41.4
+        }
+      }
+    },
+    {
+      "damage_item": "Air Conditioning Units",
+      "severity": 1,
+      "component_data": {
+        "category": "Heating / Ventilation / Climate",
+        "item": "Air Conditioning Units, Small Units for Individual Rooms",
+        "lifespan_years": 15,
+        "base_price": 1300.0,
+        "unit": "per piece",
+        "data_source": "csv_direct"
+      },
+      "cost_breakdown": {
+        "upfront_repair": {
+          "cost_EUR": 1200,
+          "description": "Replace damaged component with modern equivalent",
+          "severity_multiplier": 2.0,
+          "includes_contingency": true
+        },
+        "maintenance_schedule": [
+          {
+            "year": 5,
+            "type": "Inspection",
+            "cost_EUR": 200,
+            "description": "Mid-term inspection"
+          },
+          {
+            "year": 9,
+            "type": "Minor maintenance",
+            "cost_EUR": 350,
+            "description": "Preventive maintenance"
+          }
+        ],
+        "reasoning": "Mock calculation for testing"
+      },
+      "projection_10year": {
+        "upfront_cost": 1200,
+        "total_maintenance_cost": 846.68,
+        "total_10year_cost": 2046.67,
+        "year_0": {
+          "year": 0,
+          "upfront_cost": 1200,
+          "maintenance_cost": 0,
+          "total_cost": 1200,
+          "cumulative_cost": 1200,
+          "work_description": "Replace damaged component with modern equivalent",
+          "is_upfront": true
+        },
+        "yearly_costs": [
+          {
+            "year": 1,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 2,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 3,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 4,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 5,
+            "upfront_cost": 0,
+            "maintenance_cost": 274.28,
+            "total_cost": 274.28,
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection",
+            "is_upfront": false
+          },
+          {
+            "year": 6,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 7,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 8,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 1474.28,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          },
+          {
+            "year": 9,
+            "upfront_cost": 0,
+            "maintenance_cost": 572.4,
+            "total_cost": 572.4,
+            "cumulative_cost": 2046.67,
+            "work_description": "Preventive maintenance",
+            "is_upfront": false
+          },
+          {
+            "year": 10,
+            "upfront_cost": 0,
+            "maintenance_cost": 0,
+            "total_cost": 0,
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work",
+            "is_upfront": false
+          }
+        ],
+        "key_milestones": {
+          "0": {
+            "cumulative_cost": 1200,
+            "work_description": "Replace damaged component with modern equivalent"
+          },
+          "1": {
+            "cumulative_cost": 1200,
+            "work_description": "No scheduled work"
+          },
+          "5": {
+            "cumulative_cost": 1474.28,
+            "work_description": "Mid-term inspection"
+          },
+          "10": {
+            "cumulative_cost": 2046.67,
+            "work_description": "No scheduled work"
+          }
+        },
+        "summary": "Upfront repair: 1,200.00 EUR. 2 maintenance event(s) over 10 years totaling 846.68 EUR. Costs include 4.5% annual inflation.",
+        "breakdown": {
+          "immediate_repair_pct": 58.6,
+          "ongoing_maintenance_pct": 41.4
+        }
+      }
+    }
+  ],
+  "failed_items": null
+}

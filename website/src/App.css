@@ -822,6 +822,55 @@
   color: rgba(17, 17, 17, 0.6);
 }
 
+.upfront-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f97316;
+  color: white;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+}
+
+.cost-split-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(16, 185, 129, 0.05));
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cost-split-item {
+  text-align: center;
+}
+
+.cost-split-item .meta-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(17, 17, 17, 0.55);
+  margin-bottom: 6px;
+}
+
+.cost-split-item .meta-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  margin: 4px 0;
+}
+
+.cost-split-item .meta-hint {
+  font-size: 12px;
+  color: rgba(17, 17, 17, 0.6);
+  font-weight: 500;
+}
+
 .detail-card .analysis-meta > div {
   border-color: rgba(0, 0, 0, 0.08);
   background: rgba(248, 249, 252, 0.9);

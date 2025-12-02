@@ -1,0 +1,305 @@
+Category,Item/Subitem,Lifespan (Years),Price Type,Price (EUR),Unit,Notes
+Heating / Ventilation / Climate,Boiler,20,-,-,-,-
+Heating / Ventilation / Climate,Burner,20,-,-,-,-
+Heating / Ventilation / Climate,Control System,20,-,-,-,-
+Heating / Ventilation / Climate,Circulation Pump,20,-,-,-,-
+Heating / Ventilation / Climate,Chimneys: Stainless Steel,20,-,-,-,-
+Heating / Ventilation / Climate,Chimneys: Glass Ceramic,20,-,-,-,-
+Heating / Ventilation / Climate,Heat Pump,20,-,-,-,-
+Heating / Ventilation / Climate,"Converter for District Heating, incl. Connection Fee",25,-,-,-,-
+Heating / Ventilation / Climate,Solar Collectors,20,-,-,-,-
+Heating / Ventilation / Climate,Underfloor Heating,30,-,-,-,-
+Heating / Ventilation / Climate,Radiators / Heating Walls: Radiator,50,Replacement,600,per piece,-
+Heating / Ventilation / Climate,Radiators / Heating Walls: Towel Radiator,30,Replacement,1000,per piece,-
+Heating / Ventilation / Climate,Pipes: Copper/Steel/Cast,50,Replacement,30,per m,-
+Heating / Ventilation / Climate,Synthetic Resin Paint on Pipes and Radiators,20,New Coat,80,per piece,-
+Heating / Ventilation / Climate,Baked Synthetic Resin Paint on Pipes and Radiators,20,New Coat,70,per piece,-
+Heating / Ventilation / Climate,Electrical Installation for Heating System,20,Replacement,750,per system,-
+Heating / Ventilation / Climate,Oil/Fuel Tank: Indoor,30,Replacement,1500,per piece,-
+Heating / Ventilation / Climate,Oil/Fuel Tank: Buried,20,Replacement,3000,per piece,-
+Heating / Ventilation / Climate,Leak Protection System,20,Replacement,400,per piece,-
+Heating / Ventilation / Climate,"Measuring Instruments: Heat, Quantity, and Flow Meters",15,Replacement,350,per piece,-
+Heating / Ventilation / Climate,Measuring Instruments: Heating Cost Distributors,15,Replacement,150,per piece,-
+Heating / Ventilation / Climate,Valves: Thermostatic Radiator Valves,20,Replacement,350,per piece,-
+Heating / Ventilation / Climate,Valves: Ordinary Radiator Valves,20,Replacement,250,per piece,-
+Heating / Ventilation / Climate,"Air Conditioning Units, Small Units for Individual Rooms",15,Replacement,1300,per piece,-
+Heating / Ventilation / Climate,Ventilation: Controlled Apartment Ventilation,20,Replacement,2500,per apartment,-
+Heating / Ventilation / Climate,Ventilation Ducts,25,Replacement,150,per m,-
+Central Hot Water Preparation,Combi Boiler,20,Replacement,2500,per piece,-
+Central Hot Water Preparation,Circulation Pump,20,Replacement,300,per piece,-
+Central Hot Water Preparation,Electrical Installations for Hot Water System,20,Replacement,400,per piece,-
+Central Hot Water Preparation,"Measuring Instruments, Electronic Meters",15,Replacement,150,per piece,-
+Central Hot Water Preparation,Boiler: Combi Boiler Combined with Heating,20,Replacement,3500,per piece,-
+Central Hot Water Preparation,Boiler: Electric Boiler,20,Replacement,1200,per piece,-
+Central Hot Water Preparation,Boiler: Gas Appliances,20,Replacement,2000,per piece,-
+Chimney,"Chimneys: Fireplace, Fireplace Stove",25,Replacement,2500,per piece,-
+Chimney,Chimneys: Fireclay Lining,15,New Lining,800,per m²,-
+Chimney,Chimneys: Warm Air Fireplace,25,Replacement,3000,per piece,-
+Chimney,Chimneys: Fan for Smoke Extraction,20,Replacement,450,per piece,-
+Chimney,Aggregates: For Warm Air Fireplace,20,Replacement,200,per m³,-
+Chimney,Aggregates: For Heat Recovery,20,Replacement,250,per m³,-
+Chimney,"Chimney Closure, Metal Grid, Glass",20,Replacement,150,per piece,-
+Building Envelope,Compact Insulation: Styrofoam,25,Replacement,30,per m²,-
+Building Envelope,Compact Insulation: Mineral Wool Insulation Boards,30,Replacement,40,per m²,-
+Building Envelope,Ventilated Facade Insulation: Wood Cladding,30,Replacement,80,per m²,-
+Building Envelope,Ventilated Facade Insulation: Panels,30,Replacement,120,per m²,-
+Building Envelope,"Ventilated Facade Insulation: Eternit Cladding, Shingles",40,Replacement,90,per m²,-
+Building Envelope,Plaster: Mineral Facade Plasters on Masonry,40,New Coat,35,per m²,-
+Building Envelope,Plaster: Synthetic Plasters Facade on Masonry,25,Replacement,60,per m²,-
+Building Envelope,Plaster: Silicate Paint on Facade Plaster (pure mineral),25,New Coat,25,per m²,-
+Building Envelope,"Plaster: Dispersion Paint, Exterior, Coating for Mineral Substrates",20,New Coat,20,per m²,-
+Building Envelope,Small Repairs on Facade: Patch Hole Superficially,5,Repair,300,per hole,-
+Building Envelope,Small Repairs on Facade: Patch Larger Hole incl. Replacement Insulation,10,Repair,600,per hole,-
+Building Envelope,Attic / Basement / Roof Insulation,30,Replacement,50,per m²,-
+Building Envelope,"Window Sills, Adaptation to Insulation",30,Replacement,40,per m,-
+Building Envelope,"Joint Seals, Exterior Putty Joints, Elastic",10,Replacement,15,per m,-
+Building Envelope,"DV Windows, Double Glazing in Wood",25,Replacement,350,per m²,-
+Building Envelope,"IV Windows: Plastic, Thermal/Soundproof Windows",25,Replacement,450,per sash,-
+Building Envelope,"IV Windows: Wood, Thermal/Soundproof Windows",25,Replacement,500,per sash,-
+Building Envelope,"IV Windows: Wood-Metal, Thermal/Soundproof Windows",25,Replacement,550,per sash,-
+Building Envelope,"IV Windows: Metal, Thermal/Soundproof Windows",30,Replacement,600,per sash,-
+Building Envelope,"Coating with Oil, Synthetic Resin or Acrylic Resin Paints on Windows, Sills",10,New Coat,30,per m,-
+Building Envelope,Rubber Seals on Windows,10,Replacement,20,per m,-
+Building Envelope,"Cleaning: Wood Windows, Double Glazing (all sides)",1,Cleaning,40,per m²,-
+Building Envelope,"Cleaning: Wood or Plastic Windows, Insulated Glazing",1,Cleaning,20,per m²,-
+Building Envelope,Shutters: Wood,25,Replacement,850,per piece,-
+Building Envelope,"Shutters: Metal, Aluminum",30,Replacement,700,per piece,-
+Building Envelope,"Venetian Blinds: Exterior, Aluminum",25,Replacement,650,per piece,-
+Building Envelope,"Venetian Blinds: Interior, Aluminum or Plastic",15,Replacement,400,per piece,-
+Building Envelope,Belts for Shutters and Blinds,8,Replacement,100,per piece,-
+Building Envelope,"Motors for Fabric Blinds, Venetian Blinds, Shutters",15,Replacement,500,per piece,-
+Building Envelope,Cranks: Cranks,15,Replacement,150,per piece,-
+Building Envelope,"Cranks: Crank Holder, Metal",10,Replacement (incl. Installation),110,per piece,-
+Building Envelope,"Cranks: Crank Holder, Plastic",5,Replacement (incl. Installation),108,per piece,-
+Building Envelope,Jalousie Shutters: Wood,30,Replacement,700,per sash,-
+Building Envelope,"Jalousie Shutters: Wood, New Paint",15,New Coat,160,per sash,-
+Building Envelope,"Jalousie Shutters: Metal, Aluminum",40,Replacement,700,per sash,-
+Building Envelope,Cleaning: Jalousie Shutters: Wood,1,Cleaning,100,per m²,-
+Building Envelope,"Cleaning: Shutters: Wood, Metal, Plastic",1,Cleaning,150,per m²,-
+Building Envelope,Cleaning: Shutters: Plastic,1,Cleaning,150,per m²,-
+Building Envelope,"Cleaning: Venetian Blinds: Exterior, Aluminum, Plastic, Metal",1,Cleaning,150,per m²,-
+Building Envelope,"Cleaning: Venetian Blinds: Interior, Aluminum or Plastic",1,Cleaning,150,per m²,-
+Building Envelope,"Cleaning: Venetian Blinds: Exterior, Aluminum or Plastic",1,Cleaning,150,per m²,-
+Building Envelope,Cleaning: Fabric Blinds,1,Cleaning,30,per m²,-
+Building Envelope,Flat Roof: Gravel Bonded Roof,30,Replacement,60,per m²,-
+Building Envelope,Flat Roof: Cement Tile Covering,30,Replacement,70,per m²,-
+Building Envelope,"Sloped Roof: Tiles, Eternit",50,Replacement,50,per m²,-
+Building Envelope,"Sloped Roof: Tiles, Eternit with New Thermal Insulation",50,Replacement,130,per m²,-
+Building Envelope,"Roof Gutter, Downpipes, etc.: Painted or Galvanized",20,Replacement,30,per m,-
+Building Envelope,"Roof Gutter, Downpipes, etc.: Copper-Titanium-Zinc",30,Replacement,60,per m,-
+Building Envelope,"Roof Gutter, Downpipes, etc.: Stainless Steel, Uginox, Copper",40,Replacement,80,per m,-
+Building Envelope,Canopy: Metal Construction,30,Replacement,300,per m²,-
+Building Envelope,Canopy: Wood Construction,30,Replacement,250,per m²,-
+Building Envelope,Canopy: Covering in Wire Glass,30,Replacement,400,per m²,-
+Building Envelope,Canopy: Covering in Laminated Safety Glass,30,Replacement,150,per m²,-
+Building Envelope,Canopy: Covering with Tiles or Similar,40,Replacement,70,per m²,-
+Building Envelope,Canopy: Covering with Sheet Metal or Similar,40,Replacement,60,per m²,-
+Ceilings / Walls / Doors,"Wallpapers: Medium Quality, Textured, Printed or Raw Painted",10,Replacement,30,per m²,-
+Ceilings / Walls / Doors,"Wallpapers: Good Quality, Smooth, Washable",15,Replacement,40,per m²,-
+Ceilings / Walls / Doors,"Wallpapers: Glass Fiber Wallpaper, Paintable",20,Replacement,15,per m²,-
+Ceilings / Walls / Doors,"Coating on Wall and Ceiling Claddings/Plasters: Dispersion, Glue Paint (Blanc-fix, Whitewashed)",8,Replacement,10,per m²,-
+Ceilings / Walls / Doors,"Coating on Wall and Ceiling Claddings/Plasters: Acrylic, Alkyd Resin Paints, Synthetic Resin",15,Replacement,18,per m²,-
+Ceilings / Walls / Doors,Rubs: Synthetic Rub,30,Replacement,11,per m²,-
+Ceilings / Walls / Doors,"Rubs: Rub, Raw Plasters, Monastery Plasters etc., Mineral",25,Replacement,13,per m²,-
+Ceilings / Walls / Doors,Rubs: White Plasters,20,Replacement,18,per m²,-
+Ceilings / Walls / Doors,"Wood Paneling: Wall Raw, Cladding",30,Replacement,70,per m²,-
+Ceilings / Walls / Doors,Wood Paneling: Glazed,20,Replacement,77,per m²,-
+Ceilings / Walls / Doors,Wood Paneling: Opaque Painted,30,Replacement,86,per m²,-
+Ceilings / Walls / Doors,"Glaze / Opaque Paint (Oil, Acrylic or Synthetic Resin Paint) on Wood Paneling",20,Replacement,35,per m²,-
+Ceilings / Walls / Doors,"Ceilings: Suspended in Metal, incl. Built-in Lights",20,Replacement,90,per m²,-
+Ceilings / Walls / Doors,Ceilings: Wood Panel Ceilings,40,Replacement,75,per m²,-
+Ceilings / Walls / Doors,"Ceilings: Wood, Carved Ceilings",40,Replacement,100,per m²,-
+Ceilings / Walls / Doors,"Ceilings: Partition Walls, Mobile Lightweight Partition Walls",30,Replacement,160,per m²,-
+Ceilings / Walls / Doors,Built-in Cabinets: Chipboard,20,Replacement,350,per m,-
+Ceilings / Walls / Doors,Built-in Cabinets: Solid Wood,35,Replacement,700,per m,-
+Ceilings / Walls / Doors,Built-in Cabinets: Fittings,15,Replacement,15,per piece,-
+Ceilings / Walls / Doors,Oil or Synthetic Resin Paints on Cabinets,20,New Coat,18,per m²,-
+Ceilings / Walls / Doors,"Doors, Interior and Exterior: Solid Wood",30,Replacement,1200,per piece,-
+Ceilings / Walls / Doors,"Doors, Interior and Exterior: Wood Material, Pressed Board, Synthetic Resin Coated",25,Replacement,800,per piece,-
+Ceilings / Walls / Doors,"Doors, Interior and Exterior: Metal",30,Replacement,2200,per piece,-
+Ceilings / Walls / Doors,Oil or Synthetic Resin Paints on Doors and Door Frames,20,New Coat,18,per m²,-
+Ceilings / Walls / Doors,Glass Insert in Doors,30,Replacement,800,per m²,-
+Ceilings / Walls / Doors,Door Fittings,15,Replacement,30,per piece,-
+Ceilings / Walls / Doors,Rubber Seals on Doors,15,Replacement,20,per m,-
+Ceilings / Walls / Doors,Sliding Doors/Folding Walls: Wood Material or Solid,30,Replacement,600,per m²,-
+Ceilings / Walls / Doors,Sliding Doors/Folding Walls: Rollers,15,Replacement,50,per piece,-
+Ceilings / Walls / Doors,"Door Frames, Casings, Thresholds, Interior: Frames and Thresholds in Wood",30,Replacement,550,per piece,-
+Ceilings / Walls / Doors,"Door Frames, Casings, Thresholds, Interior: Frames and Thresholds in Metal, Synthetic or Natural Stone",40,Replacement,800,per piece,-
+Ceilings / Walls / Doors,"Door Frames, Casings, Thresholds, Interior: Casings Metal",30,Replacement,300,per piece,-
+Ceilings / Walls / Doors,"Interior Window Sills, Painted, Oil, Acrylic, or Synthetic Resin Paints",20,New Coat,15,per m,-
+Ceilings / Walls / Doors,Locks: Apartment Door,30,Replacement,220,per piece,-
+Ceilings / Walls / Doors,Locks: Room Door,30,Replacement,180,per piece,-
+Ceilings / Walls / Doors,Locks: Putty Joints,10,Replacement,25,per m,-
+Ceilings / Walls / Doors,Locks: Automatic Locking Systems,20,Replacement,400,per piece,-
+Ceilings / Walls / Doors,Cleaning: Room Doors (with Frame),1,Cleaning,20,per m²,-
+Ceilings / Walls / Doors,"Cleaning: Room Doors, Chipboard, Painted/Veneered (80x200 cm)",1,Cleaning,20,per m²,-
+Ceilings / Walls / Doors,"Cleaning: Apartment Entrance Door, Solid Wood, Metal",1,Cleaning,30,per m²,-
+Ceilings / Walls / Doors,"Painting Work, Cover Floor: with Paper",0,Material,3,per m²,-
+Ceilings / Walls / Doors,"Painting Work, Cover Floor: with Plastic",0,Material,5,per m²,-
+Ceilings / Walls / Doors,"Painting Work, Cover Floor: with Pavatex",0,Material,15,per m²,-
+Ceilings / Walls / Doors,"Painting Work, Cover Floor: over Stairs, Railings, etc. with Plastic and Pavatex",0,Material,15,per step,-
+Floor Coverings,"Floors: PVC, Novilon etc.",20,Replacement,80,per m²,-
+Floor Coverings,"Floors: Rubber, Caoutchouc",20,Replacement,120,per m²,-
+Floor Coverings,Floors: Linoleum,20,Replacement,80,per m²,-
+Floor Coverings,Floors: Cork Floor Sealed,15,Replacement,130,per m²,-
+Floor Coverings,"Laminate Floors (Synthetic Parquet): Cheap, Poor Quality, Class 31",10,Replacement,80,per m²,-
+Floor Coverings,"Laminate Floors (Synthetic Parquet): Medium Quality, Class 32",15,Replacement,100,per m²,-
+Floor Coverings,"Laminate Floors (Synthetic Parquet): High Quality, Class 33",25,Replacement,110,per m²,-
+Floor Coverings,"Parquet / Wood Strip Floors: Glued Parquet, Small Format Solid Wood Parquet (Mosaic Parquet), Renovatable up to ca. 6x",40,Replacement,90,per m²,-
+Floor Coverings,"Parquet / Wood Strip Floors: Hardwood Strips / Solid Parquet, Renovatable up to ca. x",40,Replacement,250,per m²,-
+Floor Coverings,Parquet / Wood Strip Floors: Softwood Strips / Multi-Layer Parquet,30,Replacement,230,per m²,-
+Floor Coverings,"Parquet / Wood Strip Floors: Veneer Parquet with Real Wood Veneer or Thin Wood Top Layer (Wood Floor Element = not real parquet), Mostly Non-Renovatable and Factory-Treated Surface",12,Replacement,170,per m²,-
+Floor Coverings,"Parquet Sealing / Oiling, Surface Treatment",10,Replacement,80,per m²,-
+Floor Coverings,"Underlays for Floor Coverings, Wood Fiber Board, MDF or Chipboard, Liquid Applied like Anhydrite etc.",40,Replacement,55,per m²,-
+Floor Coverings,Installation Floors,40,Replacement,60,per m²,-
+Floor Coverings,Tile Floors: Clay Tiles,30,Replacement,50,per m²,-
+Floor Coverings,"Tile Floors: Natural Stone, Soft (Gneiss, Slate, Lime, Marble, etc.), incl. Base",30,Replacement,125,per m²,-
+Floor Coverings,"Tile Floors: Natural Stone, Hard (Granite, Quartz, Feldspar etc.), incl. Base",40,Replacement,150,per m²,-
+Floor Coverings,"Tile Floors: Ceramic Tiles, Glazed (Stoneware, Earthenware Tiles; Glass Mosaic [colored]), incl. Base",30,Replacement,200,per m²,-
+Floor Coverings,"Tile Floors: Fine Stoneware Tiles, Through-Colored, Without Glaze, incl. Base",40,Replacement,125,per m²,-
+Floor Coverings,"Tile Floors: Artificial Stone Tiles, incl. Base",40,Replacement,125,per m²,-
+Floor Coverings,"Carpets: Natural Fiber Carpets, Sisal-Coconut",10,Replacement,170,per m²,-
+Floor Coverings,Carpets: Bouclé Yarn,8,Replacement,60,per m²,-
+Floor Coverings,Carpets: Needle Felt,8,Replacement,150,per m²,-
+Floor Coverings,Carpet: Medium Quality,10,Replacement,60,per m²,-
+Floor Coverings,Baseboards: Plastic / Veneered,15,Replacement,80,per m²,-
+Floor Coverings,Baseboards: Beech / Oak Wood,25,Replacement,15,per m,-
+Floor Coverings,Baseboards: Putty Joints,10,Replacement,20,per m,-
+Floor Coverings,Cleaning: Carpets from Textile Materials: Cleaning (Vacuuming),1,Cleaning,25,per m,-
+Floor Coverings,"Cleaning: Coverings from Plastics with Closed Surface: Cleaning (Vacuuming, Wipe with Suitable Soap Solution, Remove Stains with Suitable Means)",1,Cleaning,18,per m²,-
+Floor Coverings,"Cleaning: Parquet: Cleaning (Vacuuming, Regular Application of Floor Wax)",1,Cleaning,18,per m²,-
+Kitchen,Refrigeration Appliances: Refrigerator with Integrated Freezer Compartment,10,Replacement,18,per m²,-
+Kitchen,"Refrigeration Appliances: Chest Freezer / Freezer Cabinet, Freestanding",15,Replacement,1800,per piece,-
+Kitchen,Stoves: Gas Built-in Stove with Oven,15,Replacement,1200,per piece,-
+Kitchen,Stoves: Glass Ceramic Cooktop,15,Replacement,2500,per piece,-
+Kitchen,Stoves: Induction Cooktop,15,Replacement,1300,per piece,-
+Kitchen,Stoves: Stove and Oven,15,Replacement,1400,per piece,-
+Kitchen,"Baking Sheets, Small Maintenance by Tenant",2,Replacement,1800,per piece,-
+Kitchen,"Stove Plates Electric, Conventional",15,Replacement,250,per piece,kU
+Kitchen,Dishwasher,15,Replacement,90,per piece,-
+Kitchen,"Steam Extractor / Fan: Steam Extractor / Fan, incl. Metal Filter",10,Replacement,2300,per piece,-
+Kitchen,"Steam Extractor / Fan: Active Carbon Filter, Small Maintenance by Tenant",5,Replacement,800,per piece,-
+Kitchen,Microwave,15,Replacement,150,per piece,kU
+Kitchen,"Steamer, Combi Steamer",10,Replacement,900,per piece,-
+Kitchen,"Kitchen Combination Furniture: Chipboard, Coated, Laminated or MDF Sprayed",15,Replacement (Simple Version),2200,per piece,-
+Kitchen,"Kitchen Combination Furniture: Metal, Baked Lacquer",20,Replacement,3000,per meter,-
+Kitchen,"Kitchen Combination Furniture: Solid Wood, Oiled or Lacquered",20,Replacement,4500,per meter,-
+Kitchen,Kitchen Countertop: Stainless Steel,25,Replacement,600,per meter,-
+Kitchen,Kitchen Countertop: Granite,25,Replacement,2000,per piece,-
+Kitchen,Kitchen Countertop: Glass,25,Replacement,2400,per piece,-
+Kitchen,Kitchen Countertop: Synthetic Resin Surface,15,Replacement,3000,per piece,-
+Kitchen,Kitchen Countertop: Solid Wood or Multi-Layer Board,20,Replacement,1300,per piece,-
+Kitchen,Operating Fittings,20,Replacement,2700,per piece,-
+Kitchen,"Seals from Ovens, Refrigerators, Freezers, Small Maintenance by Tenant",5,Replacement,400,per piece,-
+Kitchen,Ventilation Grille Bottom,10,Replacement,20,per piece,kU
+Kitchen,"Kitchen Modernization, Overall: Low Quality",20,Replacement,30,per piece,-
+Kitchen,"Kitchen Modernization, Overall: High Quality",25,Replacement,15000,per piece,-
+Kitchen,"Wall Panels: Ceramic Tiles, Glazed; Stoneware, Earthenware Tiles; Glass Mosaic (colored)",30,Replacement,60,per m²,-
+Kitchen,"Wall Panels: Fine Stoneware Tiles, Through-Colored, Without Glaze",40,Replacement,80,per m²,-
+Kitchen,Wall Panels: Joint Seals / Putty Joints,10,Repair,15,per m,-
+Kitchen,Cleaning: Electric Stove with Oven (depending on dirt),15,Replacement,35,per m,-
+Kitchen,Cleaning: Gas Stove with Oven (depending on dirt),15,Cleaning,300,per piece,-
+Kitchen,Cleaning: Glass Ceramic Cooktop,15,Cleaning,300,per piece,-
+Kitchen,"Cleaning: Oven, High-Mounted (depending on dirt)",15,Cleaning,50,per piece,-
+Kitchen,Cleaning: Microwave Appliance,10,Cleaning,200,per piece,-
+Kitchen,Cleaning: Refrigerator up to 250 lt.,10,Cleaning,40,per piece,-
+Kitchen,Cleaning: Refrigerator over 250 lt.,1,Cleaning,100,per piece,-
+Kitchen,Cleaning: Freezer (Freestanding),1,Cleaning,200,per piece,-
+Kitchen,Cleaning: Dishwasher,1,Cleaning,200,per piece,-
+Bath / Shower / WC,Bathtub / Shower Tray: Acrylic,25,Replacement,100,per piece,-
+Bath / Shower / WC,"Bathtub / Shower Tray: Steel, Enameled",35,Replacement,400,per piece,-
+Bath / Shower / WC,Enameling of Bathtub/Shower Tray,20,Replacement,500,per piece,-
+Bath / Shower / WC,Sink/WC/Bidet/Urinal: Ceramic,35,Repair Enameling,350,per piece,-
+Bath / Shower / WC,"Shower-WC, e.g. Clos-o-mat",20,Replacement Sink,700,per piece,-
+Bath / Shower / WC,Flush Tank: Concealed,40,Replacement,5000,per piece,-
+Bath / Shower / WC,"Flush Tank: Surface-Mounted, Plastic",20,Replacement,150,per piece,-
+Bath / Shower / WC,"Flush Tank: Surface-Mounted, Ceramic",30,Replacement,400,per piece,-
+Bath / Shower / WC,Washing Machine in Tenant's Apartment,15,Replacement,500,per piece,-
+Bath / Shower / WC,Tumble Dryer in Tenant's Apartment,15,Replacement,3000,per piece,-
+Bath / Shower / WC,Mirror Cabinets: Plastic,10,Replacement,3000,per piece,-
+Bath / Shower / WC,Mirror Cabinets: Wood Material,10,Replacement,500,per piece,-
+Bath / Shower / WC,"Mirror Cabinets: Metal, Baked Lacquer",25,Replacement,600,per piece,-
+Bath / Shower / WC,Mirror,20,Replacement,1200,per piece,-
+Bath / Shower / WC,Bathroom Furniture: Plastic,10,Replacement,70,per piece,-
+Bath / Shower / WC,Bathroom Furniture: Wood Material,10,Replacement,200,per piece,-
+Bath / Shower / WC,"Bathroom Furniture: Metal, Baked Lacquer",25,Replacement,300,per piece,-
+Bath / Shower / WC,Shower Cabins: Plastic,15,Replacement,500,per piece,-
+Bath / Shower / WC,Shower Cabins: Glass Walls,25,Replacement,1000,per piece,-
+Bath / Shower / WC,"Fittings: Mixer Taps, Chrome",20,Replacement,2000,per piece,-
+Bath / Shower / WC,"Packings, Seals",6,Replacement,300,per piece,-
+Bath / Shower / WC,"Shower Hose, Small Maintenance by Tenant",5,Replacement,80,per piece,-
+Bath / Shower / WC,Single Hot Water Boiler,15,Replacement,800,per piece,kU
+Bath / Shower / WC,"Accessories: Soap Dish Holder, Chrome",15,Replacement,500,per piece,-
+Bath / Shower / WC,"Accessories: Soap Dish, Small Maintenance by Tenant",5,Replacement,70,per piece,-
+Bath / Shower / WC,Accessories: Glass Shelf,15,Replacement,50,per piece,kU
+Bath / Shower / WC,"Accessories: Towel Rails, Chrome",15,Replacement,130,per piece,-
+Bath / Shower / WC,"Accessories: Grab Bars, Chrome",15,Replacement,40,per piece,-
+Bath / Shower / WC,"Accessories: Curtain Rods, Chrome",10,Replacement,120,per piece,-
+Bath / Shower / WC,Hot Water: Gas Flow Heater,20,Replacement,60,per piece,-
+Bath / Shower / WC,"Wall Panels: Ceramic Tiles, Glazed; Stoneware, Earthenware Tiles; Glass Mosaic (colored)",30,Replacement,1500,per piece,-
+Bath / Shower / WC,"Wall Panels: Fine Stoneware Tiles, Through-Colored, Without Glaze",40,Replacement,60,per m²,-
+Bath / Shower / WC,Wall Panels: Joint Seals / Putty Joints,8,Repair,15,per m,-
+Bath / Shower / WC,"Bathroom Modernization, Overall",30,Replacement,35,per m,-
+Bath / Shower / WC,Cold Water Pipes: Galvanized Steel,30,Replacement,35,per m,-
+Bath / Shower / WC,Cold Water Pipes: Stainless Steel,50,Replacement,60,per m,-
+Bath / Shower / WC,Cold Water Pipes: Copper,50,Replacement,50,per m,-
+Bath / Shower / WC,Water Pipes PEX-Metal Composite Pipe,30,Replacement,40,per m,-
+Bath / Shower / WC,"Hot Water Pipes Copper, with Plastic Insulation",50,Replacement,65,per m,-
+Bath / Shower / WC,"Gas Pipe, Steel Pipes, Painted",50,Replacement,70,per m,-
+TV and Radio Reception / Electrical Systems,TV Cable Connection,10,Replacement,150,per piece,-
+TV and Radio Reception / Electrical Systems,ISDN Connection,10,Replacement,370,per piece,-
+TV and Radio Reception / Electrical Systems,TV Antenna / Satellite Dish,10,Replacement,340,per piece,-
+TV and Radio Reception / Electrical Systems,"Telephone Distributor, Installations",25,Replacement,250,per piece,-
+TV and Radio Reception / Electrical Systems,"Telephone House Central, Small Central",15,Replacement,800,per piece,-
+TV and Radio Reception / Electrical Systems,Switches,15,Replacement,4000,per piece,-
+TV and Radio Reception / Electrical Systems,Sockets,15,Replacement,150,per piece,-
+TV and Radio Reception / Electrical Systems,Fittings,15,Replacement,150,per piece,-
+TV and Radio Reception / Electrical Systems,Meters,20,Replacement,200,per piece,-
+TV and Radio Reception / Electrical Systems,"Lights, Ceiling and Wall Lights in Kitchen, Bath, WC",20,Replacement,60,per piece,-
+TV and Radio Reception / Electrical Systems,Lines,40,Replacement,15,per m,-
+TV and Radio Reception / Electrical Systems,High-Voltage Systems,40,Replacement,25,per m,-
+Balconies / Sun Blinds / Conservatory,Balconies: Wood Construction,30,Replacement,350,per m²,-
+Balconies / Sun Blinds / Conservatory,Balconies: Metal Construction,40,Replacement,450,per m²,-
+Balconies / Sun Blinds / Conservatory,Balconies: Cement Plates,30,Replacement,60,per m²,-
+Balconies / Sun Blinds / Conservatory,Balconies: Fine Stoneware Tiles,25,Replacement,75,per m²,-
+Balconies / Sun Blinds / Conservatory,"Balconies: Railings, Wood Slats, Painted",20,Replacement,120,per m,-
+Balconies / Sun Blinds / Conservatory,"Balconies: Railings, Metal Profiles, Pipes, Sheets, Painted or Baked Lacquer",30,Replacement,180,per m,-
+Balconies / Sun Blinds / Conservatory,Sun Blinds: Fabric,15,Replacement,80,per m²,-
+Balconies / Sun Blinds / Conservatory,Sun Blinds: Belts for Sun Blinds,8,Replacement,550,per piece,-
+Balconies / Sun Blinds / Conservatory,"Conservatory: Wood, Painted or Glazed, Plastic Construction with Glazing",20,Replacement,100,per piece,-
+Balconies / Sun Blinds / Conservatory,"Conservatory: Steel, Primed and Painted with Glazing",25,Replacement,700,per m²,-
+Balconies / Sun Blinds / Conservatory,"Conservatory: Baked Lacquer Aluminum, Galvanized or Baked Lacquer Steel Constructions with Glazing",30,Replacement,900,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Insulated Glazing,25,Replacement,250,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Single Glazing,25,Replacement Glass,400,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Masonry Work,25,Replacement Glass,150,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Tile Work,25,Replacement,60,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Ceramic Tile Work,25,Replacement,75,per m²,-
+Balconies / Sun Blinds / Conservatory,Conservatory: Electrical Installations for Conservatory etc.,25,Replacement,150,per m²,-
+Balconies / Sun Blinds / Conservatory,"Terraces: Railings, Wood Slats, Painted",20,Replacement,120,per m,-
+Balconies / Sun Blinds / Conservatory,"Terraces: Railings, Metal Profiles, Pipes, Sheets, Painted or Baked Lacquer",30,Replacement,150,per m,-
+Balconies / Sun Blinds / Conservatory,Terraces: Cement Plates,30,Replacement,60,per m²,-
+Balconies / Sun Blinds / Conservatory,Terraces: Fine Stoneware Tiles,25,Replacement,80,per m²,-
+Balconies / Sun Blinds / Conservatory,Terraces: Electrical Installations on Terraces,25,Replacement,150,per m²,-
+Balconies / Sun Blinds / Conservatory,"Terraces: Garden Seating Area, Eternit Products",10,Replacement,200,per m²,-
+Balconies / Sun Blinds / Conservatory,"Playground: Play Equipment, Metal, Wood, Plastic",15,Replacement,3000,per piece,-
+Balconies / Sun Blinds / Conservatory,"Playground: Floor Mats, Dirt Locks, Foot Scrapers, Textile",10,Replacement,60,per m²,-
+Basement and Attic Expansion,Use for Living and Working Purposes,40,Refurbishment,800,per m²,-
+Basement and Attic Expansion,Use as Storage Space,40,Refurbishment,300,per m²,-
+Basement and Attic Expansion,Shelter Ventilation,40,Replacement,1500,per piece,-
+Elevator,Elevator System,30,Replacement,30000,per piece,-
+Elevator,Electrical Installations for Elevator System,30,Replacement,5000,per piece,-
+Community Facilities,Washing Machine,15,Replacement,450,per piece,-
+Community Facilities,Tumble Dryer,15,Replacement,550,per piece,-
+Community Facilities,Drying Appliance,15,Replacement,600,per piece,-
+Community Facilities,Water Softening System,20,Replacement,1200,per piece,-
+Community Facilities,Combi Locking System,20,Replacement,350,per piece,-
+Community Facilities,"Automatic Door Opener System, Mechanical Parts",20,Replacement,800,per piece,-
+Community Facilities,"Intercom System, Door Opener, Electrical Parts",20,Replacement,700,per piece,-
+Community Facilities,Mailbox,20,Replacement,150,per piece,-
+Community Facilities,"Fences etc.: Metal Posts with Wood Stakes or Similar, Wood Impregnated",15,Replacement,300,per piece,-
+Community Facilities,Fences etc.: Metal Posts with Metal Stakes or Wire Mesh,25,Replacement,80,per m,-
+Community Facilities,"Garden Walls, Garage Walls, Retaining Walls, Solid",40,Replacement,250,per m²,-
+Community Facilities,"Cement Plates, Access Paths",30,Replacement,60,per m²,-
+Reductions for Special Use,Offices,50,Reduction,20,percent,Reduce by 20%
+Reductions for Special Use,"Commercial with Low Stress (e.g., Shops)",50,Reduction,25,percent,Reduce by 25%
+Reductions for Special Use,"Commercial with High Stress (e.g., Restaurant)",50,Reduction,50,percent,Reduce by 50%

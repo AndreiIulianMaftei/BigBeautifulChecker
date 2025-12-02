@@ -17,12 +17,14 @@ from fastapi.responses import FileResponse
 
 try:
     from src.get_bbox import get_bbox
+    from src.immo24_scraper import fetch_immo24_listing
     from src.price_calculator import analyze_damages_for_endpoint
     from src.property_valuation import calculate_property_valuation_endpoint
 except ImportError:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
     from src.get_bbox import get_bbox
+    from src.immo24_scraper import fetch_immo24_listing
     from src.price_calculator import analyze_damages_for_endpoint
     from src.property_valuation import calculate_property_valuation_endpoint
 
@@ -45,6 +47,10 @@ class CombinedValuationRequest(PropertyValuationRequest):
     damage_items: List[DamageItem] = []
     use_mock: bool = False
     max_concurrent: int = 5
+
+class Immo24LinkRequest(BaseModel):
+    url: str
+    max_images: int = 5
 
 app = FastAPI(title="Damage Detection Backend")
 
@@ -245,6 +251,39 @@ async def detect_and_price(
         if temp_input_path and os.path.exists(temp_input_path):
             # os.remove(temp_input_path)
             pass
+
+@app.post("/immo24/scrape", summary="Extract listing details from a German property site")
+def scrape_immo24_listing(request: Immo24LinkRequest):
+    """
+    Fetch price, address, and photos from a German property listing URL.
+    
+    **Supported Sites:**
+    - **immowelt.de** (RECOMMENDED - reliable, no bot blocking)
+    - **immobilienscout24.de** (may be blocked by bot detection)
+    
+    Uses Playwright (headless browser) to automatically handle cookie consent.
+    Supports both individual listing URLs (/expose/...) and search result pages.
+    
+    **Example URLs:**
+    - https://www.immowelt.de/expose/12345
+    - https://www.immowelt.de/suche/muenchen/wohnungen/mieten
+    - https://www.immobilienscout24.de/expose/123456789
+    
+    If ImmoScout24 is blocked, the response will include a 'bot_detected' flag
+    with alternative options.
+    """
+    try:
+        print(f"[DEBUG] Scraping URL: {request.url}, max_images: {request.max_images}")
+        data = fetch_immo24_listing(request.url, max_images=request.max_images)
+        print(f"[DEBUG] Got data type: {type(data)}")
+        return data
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        print("[DEBUG] Full traceback:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unable to process listing: {str(e)}")
 
 @app.post("/property-valuation", summary="Calculate 10-year property valuation")
 def property_valuation(request: PropertyValuationRequest):

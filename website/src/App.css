@@ -109,6 +109,56 @@
   margin-top: 20px;
 }
 
+.immo24-import {
+  width: 100%;
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px dashed rgba(17, 17, 17, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.immo24-import__labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.immo24-import__labels label {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #111;
+}
+
+.immo24-hint {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.immo24-import__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.immo24-import__controls input {
+  flex: 1;
+  min-width: 240px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+}
+
+.immo24-import .primary-button {
+  white-space: nowrap;
+}
+
 .property-field {
   flex: 1;
   min-width: 200px;

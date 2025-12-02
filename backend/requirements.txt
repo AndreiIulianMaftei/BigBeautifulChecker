@@ -9,3 +9,5 @@ python-multipart
 pandas
 pydantic
 requests
+beautifulsoup4
+playwright

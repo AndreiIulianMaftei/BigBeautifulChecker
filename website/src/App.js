@@ -24,6 +24,16 @@ const clampSeverity = (value) => {
   return Math.min(5, Math.max(1, numeric));
 };
 
+const base64ToFile = (base64String, filename, contentType = 'image/jpeg') => {
+  const byteCharacters = atob(base64String);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i += 1) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new File([byteArray], filename, { type: contentType });
+};
+
 const buildCostProfilesFromPricing = (pricing) => {
   if (!pricing?.analyses?.length) {
     return [];
@@ -129,6 +139,8 @@ function App() {
   const [valuationError, setValuationError] = useState('');
   const [isValuationLoading, setIsValuationLoading] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
+  const [immo24Url, setImmo24Url] = useState('');
+  const [isImportingListing, setIsImportingListing] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
   const [selectedHorizonYear, setSelectedHorizonYear] = useState(null);
@@ -495,14 +507,21 @@ function App() {
     setShowCameraModal(false);
   };
 
-  const handleProcessQueuedFiles = async () => {
-    if (!pendingFiles.length) {
+  const processFiles = async (filesToProcess, options = {}) => {
+    const { clearFromPending = false, addressOverride, priceOverride } = options;
+    const filesArray = filesToProcess || [];
+
+    if (!filesArray.length) {
       setErrorMessage('Add photos first, then start processing.');
       return;
     }
 
-    const numericPrice = parseFloat(propertyPrice);
-    if (!propertyAddress.trim() || Number.isNaN(numericPrice)) {
+    const addressToUse = (addressOverride ?? propertyAddress ?? '').trim();
+    const priceToUse = priceOverride ?? propertyPrice;
+    const numericPrice =
+      typeof priceToUse === 'number' ? priceToUse : parseFloat(priceToUse);
+
+    if (!addressToUse || Number.isNaN(numericPrice)) {
       setErrorMessage('Please enter the property address and price before processing.');
       return;
     }
@@ -511,9 +530,12 @@ function App() {
     setIsUploading(true);
 
     try {
-      const uploadResults = await Promise.all(pendingFiles.map(uploadFile));
+      const uploadResults = await Promise.all(filesArray.map(uploadFile));
       setProcessedImages((prev) => [...uploadResults, ...prev]);
-      setPendingFiles([]);
+
+      if (clearFromPending) {
+        setPendingFiles((prev) => prev.filter((file) => !filesArray.includes(file)));
+      }
     } catch (error) {
       console.error('Upload error:', error);
       setErrorMessage(error.message || 'Unable to process the selected files.');
@@ -522,10 +544,91 @@ function App() {
     }
   };
 
+  const handleProcessQueuedFiles = async () => {
+    await processFiles(pendingFiles, { clearFromPending: true });
+  };
+
   const handleUploadAreaDrop = (event) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files || []);
     handleFileSelection(files);
+  };
+
+  const handleImportImmo24Link = async () => {
+    if (!immo24Url.trim()) {
+      setErrorMessage('Paste an Immo24 listing link first.');
+      return;
+    }
+
+    setIsImportingListing(true);
+    setErrorMessage('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/immo24/scrape`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          url: immo24Url.trim(), 
+          max_images: 5,
+        }),
+      });
+
+      if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || 'Failed to fetch listing from Immo24.');
+      }
+
+      const data = await response.json();
+
+      if (data.address) {
+        setPropertyAddress(data.address);
+      }
+      if (data.price) {
+        setPropertyPrice(String(data.price));
+      }
+
+      const addressForProcessing = (data.address || propertyAddress || '').trim();
+      const priceForProcessing = data.price ?? propertyPrice;
+      const numericPrice =
+        typeof priceForProcessing === 'number'
+          ? priceForProcessing
+          : parseFloat(priceForProcessing);
+      const canAutoProcess = addressForProcessing && !Number.isNaN(numericPrice);
+
+      let importedFiles = [];
+      if (Array.isArray(data.photos)) {
+        importedFiles = data.photos
+          .filter((photo) => photo?.base64)
+          .map((photo, idx) =>
+            base64ToFile(
+              photo.base64,
+              photo.filename || `immo24-photo-${idx + 1}.jpg`,
+              photo.content_type || 'image/jpeg'
+            )
+          );
+      }
+
+      if (importedFiles.length) {
+        setPendingFiles((prev) => [...importedFiles, ...prev]);
+
+        if (canAutoProcess) {
+          await processFiles(importedFiles, {
+            clearFromPending: true,
+            addressOverride: addressForProcessing,
+            priceOverride: numericPrice,
+          });
+        } else {
+          setErrorMessage('Listing imported. Add a price and address to start processing.');
+        }
+      } else {
+        setErrorMessage('Listing imported, but no photos were available to analyze.');
+      }
+    } catch (error) {
+      console.error('Immo24 import error:', error);
+      setErrorMessage(error.message || 'Unable to import Immo24 listing.');
+    } finally {
+      setIsImportingListing(false);
+    }
   };
 
   const fetchValuationReport = async (damageItems) => {
@@ -621,6 +724,30 @@ function App() {
           </div>
 
           <div className="property-form">
+            <div className="immo24-import">
+              <div className="immo24-import__labels">
+                <label htmlFor="immo24-url">Have an Immo24 link?</label>
+                <span className="immo24-hint">We will pull the address, price, and gallery photos.</span>
+              </div>
+              <div className="immo24-import__controls">
+                <input
+                  id="immo24-url"
+                  type="url"
+                  placeholder="https://www.immowelt.de/expose/... (recommended)"
+                  value={immo24Url}
+                  onChange={(e) => setImmo24Url(e.target.value)}
+                  disabled={isImportingListing}
+                />
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={handleImportImmo24Link}
+                  disabled={isImportingListing}
+                >
+                  {isImportingListing ? 'Processing link...' : 'Process Immo24 link'}
+                </button>
+              </div>
+            </div>
             <div className="property-field">
               <label htmlFor="property-address">Property address</label>
               <input

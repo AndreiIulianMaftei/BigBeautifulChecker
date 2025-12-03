@@ -325,9 +325,20 @@ async def call_ai_model(prompt: str, use_mock: bool = False) -> str:
     # Run API call in thread pool to avoid blocking
     loop = asyncio.get_event_loop()
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    
+    # Configure model with temperature=0 for deterministic output
+    generation_config = {
+        "temperature": 0,  # Deterministic - same input = same output
+        "top_p": 1,
+        "top_k": 1,
+    }
+    
     response = await loop.run_in_executor(
         None,
-        lambda: genai.GenerativeModel('gemini-2.0-flash-exp').generate_content(prompt)
+        lambda: genai.GenerativeModel(
+            'gemini-2.0-flash-exp',
+            generation_config=generation_config
+        ).generate_content(prompt)
     )
     return response.text
 

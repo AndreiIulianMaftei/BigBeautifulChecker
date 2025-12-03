@@ -899,6 +899,73 @@ def _extract_immowelt_search_results(soup: BeautifulSoup, html_text: str, page_u
     }
 
 
+def _detect_bot_protection(html_text: str, status_code: int = 200) -> Dict:
+    """Detect if the page is blocked by anti-bot protection.
+    
+    Returns dict with keys:
+    - blocked: bool (True if blocked)
+    - protection_type: str (e.g., "DataDome", "Imperva", "Cloudflare")
+    - details: str (human-readable message)
+    """
+    result = {
+        "blocked": False,
+        "protection_type": None,
+        "details": None
+    }
+    
+    if not html_text or len(html_text) < 500:
+        result["blocked"] = True
+        result["protection_type"] = "Empty Response"
+        result["details"] = f"Response too short ({len(html_text)} bytes), likely blocked"
+        return result
+    
+    lower_html = html_text.lower()
+    
+    # DataDome detection
+    if "datadome" in lower_html or "x-datadome" in lower_html:
+        result["blocked"] = True
+        result["protection_type"] = "DataDome"
+        result["details"] = "DataDome anti-bot protection detected. Your IP may be temporarily blocked."
+        return result
+    
+    # Imperva (Incapsula) detection
+    if any(x in lower_html for x in ["incapsula", "imperva", "_incap_", "visid_incap"]):
+        result["blocked"] = True
+        result["protection_type"] = "Imperva/Incapsula"
+        result["details"] = "Imperva bot protection detected. Strong anti-bot measures active."
+        return result
+    
+    # Cloudflare detection
+    if "cloudflare" in lower_html and ("challenge" in lower_html or "captcha" in lower_html):
+        result["blocked"] = True
+        result["protection_type"] = "Cloudflare"
+        result["details"] = "Cloudflare challenge/CAPTCHA detected."
+        return result
+    
+    # Generic CAPTCHA detection
+    if any(x in lower_html for x in ["captcha", "recaptcha", "hcaptcha"]):
+        result["blocked"] = True
+        result["protection_type"] = "CAPTCHA"
+        result["details"] = "CAPTCHA challenge detected."
+        return result
+    
+    # 403 Forbidden
+    if status_code == 403:
+        result["blocked"] = True
+        result["protection_type"] = "HTTP 403"
+        result["details"] = "Access forbidden (HTTP 403). Your IP may be blocked."
+        return result
+    
+    # Generic "Access Denied" patterns
+    if any(x in lower_html for x in ["access denied", "zugriff verweigert", "blocked"]):
+        result["blocked"] = True
+        result["protection_type"] = "Access Denied"
+        result["details"] = "Generic access denial detected in page content."
+        return result
+    
+    return result
+
+
 def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
     """Fetch Immowelt page using Playwright for JavaScript-rendered content.
     
@@ -906,7 +973,7 @@ def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
     to get the full page content.
     """
     if not PLAYWRIGHT_AVAILABLE or not sync_playwright:
-        return {"html": "", "images": [], "bot_detected": False}
+        return {"html": "", "images": [], "bot_protection": None}
     
     def _try_fetch(headless: bool) -> Dict:
         with sync_playwright() as p:
@@ -929,6 +996,9 @@ def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
                 
                 html = page.content()
                 page_title = page.title()
+                
+                # Check for bot protection
+                bot_protection = _detect_bot_protection(html)
                 
                 # Get images via JavaScript
                 image_urls = page.evaluate("""() => {
@@ -955,13 +1025,10 @@ def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
                 if not isinstance(image_urls, list):
                     image_urls = []
                 
-                # Check for bot detection
-                bot_detected = "robot" in page_title.lower() or "captcha" in page_title.lower() or "blocked" in page_title.lower()
-                
                 return {
                     "html": html,
                     "images": image_urls,
-                    "bot_detected": bot_detected,
+                    "bot_protection": bot_protection,
                     "title": page_title,
                 }
             finally:
@@ -980,7 +1047,7 @@ def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
         return result
     except Exception as e:
         print(f"Immowelt Playwright fetch failed: {e}")
-        return {"html": "", "images": [], "bot_detected": False}
+        return {"html": "", "images": [], "bot_protection": {"blocked": True, "protection_type": "Exception", "details": str(e)}}
 
 
 def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
@@ -998,6 +1065,7 @@ def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
         "property_type": None,
         "photos": [],
         "listings": [] if is_search else None,
+        "bot_protection": None,
     }
     
     # Always try Playwright first for Immowelt (needed for JS-rendered content)
@@ -1005,10 +1073,15 @@ def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
     
     # Ensure playwright_data is a dict
     if not isinstance(playwright_data, dict):
-        playwright_data = {"html": "", "images": [], "title": ""}
+        playwright_data = {"html": "", "images": [], "title": "", "bot_protection": None}
     
     html_text = playwright_data.get("html", "") or ""
     page_title = playwright_data.get("title", "") or ""
+    bot_protection = playwright_data.get("bot_protection")
+    
+    # Store bot protection info
+    if bot_protection and bot_protection.get("blocked"):
+        result["bot_protection"] = bot_protection
     
     # Fallback to simple requests if Playwright failed
     if not html_text or len(html_text) < 5000:
@@ -1016,11 +1089,21 @@ def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
             resp = requests.get(url, headers=DEFAULT_HEADERS, timeout=15)
             if resp.status_code == 200 and len(resp.text) > len(html_text):
                 html_text = resp.text
+                # Check fallback request for bot protection too
+                fallback_protection = _detect_bot_protection(resp.text, resp.status_code)
+                if fallback_protection.get("blocked"):
+                    result["bot_protection"] = fallback_protection
         except Exception as e:
             print(f"Immowelt requests fetch failed: {e}")
     
     if not html_text:
         result["error"] = "Failed to fetch page content"
+        if not result.get("bot_protection"):
+            result["bot_protection"] = {
+                "blocked": True,
+                "protection_type": "Empty Response",
+                "details": "No HTML content received from server"
+            }
         return result
     
     soup = BeautifulSoup(html_text, "html.parser")

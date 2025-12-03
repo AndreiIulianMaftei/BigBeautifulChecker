@@ -678,18 +678,22 @@ function App() {
       return;
     }
 
-    const aggregatedDamage = processedImages.flatMap((image) =>
+    // Extract BOTH damage items and their existing pricing data
+    const aggregatedData = processedImages.flatMap((image) =>
       (image.pricing?.analyses || []).map((analysis) => ({
         item: analysis.damage_item || 'Damage',
         severity: clampSeverity(analysis.severity ?? 3),
+        // Include the existing pricing to avoid recalculation
+        existing_pricing: analysis
       }))
     );
 
-    if (!aggregatedDamage.length) {
+    if (!aggregatedData.length) {
       return;
     }
 
-    fetchValuationReport(aggregatedDamage);
+    // Pass existing pricing data to avoid LLM recalculation
+    fetchValuationReport(aggregatedData);
   }, [processedImages, propertyAddress, propertyPrice, propertyType]);
 
   return (

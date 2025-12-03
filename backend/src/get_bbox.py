@@ -129,8 +129,15 @@ def detect_single_image(path_to_image: str, subcategories: list):
     image = Image.open(path_to_image)
 
     response = model.generate_content([std_detection_prompt, image])
-    print(f"LLM response: {response.text}")
-    return response.text
+    response_text = response.text
+    print(f"LLM response: {response_text[:500]}...")  # Print first 500 chars
+    
+    # Check if LLM refused or returned empty
+    if not response_text or response_text.strip() == "[]":
+        print("WARNING: Gemini returned empty array - possible API quota exceeded or model refusal")
+        print("TIP: Try uploading actual building damage images, not maps or general property photos")
+    
+    return response_text
 
 async def process_single_image_async(path_to_image: str, destination_path: str):
     loop = asyncio.get_event_loop()

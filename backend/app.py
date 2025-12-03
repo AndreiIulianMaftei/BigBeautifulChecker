@@ -191,7 +191,9 @@ async def detect_and_price(
         # Transform detection output to price calculator input
         damage_items = []
         if detection_result and "annotation" in detection_result:
+            print(f"DEBUG: Detection result has {len(detection_result['annotation'])} annotations")
             for ann in detection_result["annotation"]:
+                print(f"DEBUG: Annotation: {ann}")
                 # Extract severity (convert string to int if needed)
                 severity = ann.get("severity", 3)
                 if isinstance(severity, str):
@@ -207,19 +209,32 @@ async def detect_and_price(
                 # Fallback to label if subcategory not present
                 item_name = ann.get("subcategory", ann.get("label", "unknown"))
                 
+                print(f"DEBUG: Creating damage_item - item: {item_name}, severity: {severity}")
+                
                 damage_items.append({
                     "item": item_name,
                     "severity": severity
                 })
         
+        print(f"DEBUG: Total damage_items: {len(damage_items)}")
+        
         # Calculate prices if damages were detected
+        # If no damages detected but detection ran, use mock data to show what pricing would look like
         pricing_result = None
         if damage_items:
+            print(f"DEBUG: Calling analyze_damages_for_endpoint with {len(damage_items)} items")
             pricing_result = await analyze_damages_for_endpoint(
                 damage_items=damage_items,
                 use_mock=use_mock_pricing,
                 max_concurrent=max_concurrent
             )
+            print(f"DEBUG: Pricing result: {pricing_result is not None}")
+            if pricing_result:
+                print(f"DEBUG: Pricing has {len(pricing_result.get('analyses', []))} analyses")
+        else:
+            print("DEBUG: No damage_items found - Gemini detection returned empty")
+            print("DEBUG: This usually means API quota exceeded or model refusal")
+            print("DEBUG: Consider using use_mock_pricing=true for testing")
 
         encoded_image = None
         if os.path.exists(destination_path):
@@ -348,7 +363,8 @@ async def valuation_report(request: CombinedValuationRequest):
         }
 
         if repair_summary and repair_summary.get("analyses"):
-            total_repairs = repair_summary["summary"]["grand_total_10year_cost_EUR"]
+            # Access the correct nested structure
+            total_repairs = repair_summary["summary"]["cost_breakdown"]["grand_total_10year_cost_EUR"]
             final_value = valuation["valuation"]["10_year_summary"]["final_property_value"]
             combined["insights"] = {
                 "net_projected_value": round(final_value - total_repairs, 2),

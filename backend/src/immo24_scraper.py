@@ -1265,7 +1265,7 @@ def _fetch_search_page(url: str, max_images: int = 3) -> Dict:
     return result
 
 
-def _fetch_single_listing(url: str, max_images: int = 5) -> Dict:
+def _fetch_single_listing(url: str, max_images: int = 3) -> Dict:
     """Fetch data from a single listing page."""
     
     def _fetch_html(target_url: str) -> Dict[str, str]:

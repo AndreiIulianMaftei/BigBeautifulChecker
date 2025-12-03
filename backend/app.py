@@ -32,6 +32,7 @@ except ImportError:
 class DamageItem(BaseModel):
     item: str
     severity: int  # 1-5
+    existing_pricing: Optional[dict] = None  # Optional pre-calculated pricing to avoid LLM recalculation
 
 class PriceRequest(BaseModel):
     damage_items: List[DamageItem]

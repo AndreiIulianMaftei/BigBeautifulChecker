@@ -1050,7 +1050,7 @@ def _fetch_immowelt_with_playwright(url: str, is_search: bool = False) -> Dict:
         return {"html": "", "images": [], "bot_protection": {"blocked": True, "protection_type": "Exception", "details": str(e)}}
 
 
-def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
+def _fetch_immowelt_listing(url: str, max_images: int = 3) -> Dict:
     """Fetch data from an Immowelt listing or search page."""
     is_search = _is_immowelt_search_page(url)
     
@@ -1154,7 +1154,7 @@ def _fetch_immowelt_listing(url: str, max_images: int = 5) -> Dict:
 
 # ==================== MAIN ENTRY POINT ====================
 
-def fetch_immo24_listing(url: str, max_images: int = 5) -> Dict:
+def fetch_immo24_listing(url: str, max_images: int = 3) -> Dict:
     """
     Fetch price, address, and photos from a German property listing.
     
@@ -1214,7 +1214,7 @@ def fetch_immo24_listing(url: str, max_images: int = 5) -> Dict:
         )
 
 
-def _fetch_search_page(url: str, max_images: int = 5) -> Dict:
+def _fetch_search_page(url: str, max_images: int = 3) -> Dict:
     """Fetch data from a search results page."""
     search_data = _extract_search_results_with_playwright(url, max_listings=10)
     
@@ -1313,7 +1313,7 @@ def _fetch_single_listing(url: str, max_images: int = 5) -> Dict:
         if rendered and rendered.get("html"):
             fetched = rendered
             parsed = _parse_listing_html(rendered["html"], rendered["used_url"])
-            photos = _download_images(parsed["images"], max_images=max_images or 5)
+            photos = _download_images(parsed["images"], max_images=max_images or 3)
             if photos or parsed.get("price") or parsed.get("address"):
                 used_playwright = True
 
@@ -1322,7 +1322,7 @@ def _fetch_single_listing(url: str, max_images: int = 5) -> Dict:
         try:
             requests_fetched = _fetch_html(url)
             requests_parsed = _parse_listing_html(requests_fetched["html"], url)
-            requests_photos = _download_images(requests_parsed["images"], max_images=max_images or 5)
+            requests_photos = _download_images(requests_parsed["images"], max_images=max_images or 3)
             
             # Use requests results if they're better
             if requests_photos and len(requests_photos) > len(photos):
@@ -1345,7 +1345,7 @@ def _fetch_single_listing(url: str, max_images: int = 5) -> Dict:
         if rendered and rendered.get("html"):
             fetched = rendered
             parsed = _parse_listing_html(rendered["html"], rendered["used_url"])
-            photos = _download_images(parsed["images"], max_images=max_images or 5)
+            photos = _download_images(parsed["images"], max_images=max_images or 3)
             used_playwright = True
 
     # If we still have nothing, set defaults

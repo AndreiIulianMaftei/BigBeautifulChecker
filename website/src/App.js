@@ -111,8 +111,9 @@ const buildAggregateReport = (images) => {
   const combinedSystems = {};
   images.forEach((image) => {
     (image.costProfiles || []).forEach((profile) => {
-      const tenYear = profile.horizons.find((h) => h.year === 10)?.total || 0;
-      combinedSystems[profile.label] = (combinedSystems[profile.label] || 0) + tenYear;
+      // Calculate total cost including upfront (year 0) + all yearly costs
+      const totalCost = profile.yearlySeries.reduce((sum, entry) => sum + entry.cost, 0);
+      combinedSystems[profile.label] = (combinedSystems[profile.label] || 0) + totalCost;
     });
   });
 

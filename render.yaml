@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: crib-checker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: model
+        sync: false
+    healthCheckPath: /

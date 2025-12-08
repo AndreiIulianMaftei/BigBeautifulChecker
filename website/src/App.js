@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './App.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 const COST_HORIZONS = [1, 5, 10];
 
 const formatCurrency = (value) => {

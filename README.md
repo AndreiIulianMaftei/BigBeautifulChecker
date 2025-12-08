@@ -4,6 +4,8 @@
 
 Crib Checker analyzes property images to detect damages, estimate repair costs, and provide property valuation insights — helping buyers make informed decisions.
 
+![Start Screen](assets/start_screen.png)
+
 ## Live Demo
 
 **Try it now:** [https://crib-checker-production.up.railway.app/](https://crib-checker-production.up.railway.app/)
@@ -36,13 +38,23 @@ Crib Checker analyzes property images to detect damages, estimate repair costs, 
 
 4. **Important:** Processing won't start until both **location** and **price** are provided
 
-5. **Wait for analysis** — This takes a moment, grab a coffee
+   ![Mandatory Fields](assets/mandatory_fields.png)
 
-6. **View Results:**
+5. **Submit for analysis:**
+
+   ![Submission Form](assets/Submission_form.png)
+
+6. **Wait for analysis** — This takes a moment, grab a coffee
+
+7. **View Results:**
    - The dashboard displays detailed damage metrics
    - See repair cost breakdowns and severity ratings
    - View investment projections and property insights
    - Price updates at the bottom are powered by the **Interhyp API**
+
+   ![Dashboard](assets/dashboards.png)
+
+   ![Cost Details](assets/cost%20details.png)
 
 ---
 

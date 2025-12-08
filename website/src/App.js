@@ -7,6 +7,44 @@ import './App.css';
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 const COST_HORIZONS = [1, 5, 10];
 
+// Device detection hook
+const useDeviceDetection = () => {
+  const [device, setDevice] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isIOS: false,
+    isAndroid: false,
+  });
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const ua = navigator.userAgent;
+      const width = window.innerWidth;
+      
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/.test(ua);
+      const isMobile = width <= 480 || /iPhone|iPod|Android.*Mobile/.test(ua);
+      const isTablet = (width > 480 && width <= 1024) || /iPad|Android(?!.*Mobile)/.test(ua);
+      const isDesktop = !isMobile && !isTablet;
+
+      setDevice({
+        isMobile,
+        isTablet,
+        isDesktop,
+        isIOS,
+        isAndroid,
+      });
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
+  return device;
+};
+
 const formatCurrency = (value) => {
   const formatter = new Intl.NumberFormat('de-CH', {
     style: 'currency',
@@ -126,6 +164,7 @@ const buildAggregateReport = (images) => {
 };
 
 function App() {
+  const device = useDeviceDetection();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -697,8 +736,18 @@ function App() {
     fetchValuationReport(aggregatedData);
   }, [processedImages, propertyAddress, propertyPrice, propertyType]);
 
+  // Build device-specific class names
+  const appClasses = [
+    'app',
+    device.isMobile && 'is-mobile',
+    device.isTablet && 'is-tablet',
+    device.isDesktop && 'is-desktop',
+    device.isIOS && 'is-ios',
+    device.isAndroid && 'is-android',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="app">
+    <div className={appClasses}>
       <img 
         src="/12312Asset 1qww21312312.svg" 
         alt="Background" 
@@ -818,19 +867,12 @@ function App() {
               >
                 Browse files
               </button>
-              <p className="upload-hint">You can select multiple files at once or snap a new photo.</p>
+              <p className="upload-hint">You can select multiple files at once. On mobile, you can also use your camera.</p>
             </div>
           </div>
 
           <div className="upload-actions">
             <div className="action-buttons">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={handleOpenCamera}
-              >
-                Take photo with camera
-              </button>
               <button
                 type="button"
                 className="primary-button"

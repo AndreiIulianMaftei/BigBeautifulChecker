@@ -1564,3 +1564,291 @@
     font-size: 12px;
   }
 }
+
+/* =====================================================
+   MOBILE & iOS SPECIFIC STYLES
+   ===================================================== */
+
+/* Mobile-specific optimizations */
+.is-mobile .upload-container {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  padding: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.is-mobile .upload-section {
+  padding: 0;
+}
+
+.is-mobile .upload-header {
+  padding-bottom: 16px;
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.98);
+  z-index: 10;
+  margin: -16px -16px 16px;
+  padding: 16px 16px 12px;
+}
+
+.is-mobile .upload-header h2 {
+  font-size: 20px;
+}
+
+.is-mobile .property-form {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.is-mobile .property-field {
+  min-width: 100%;
+}
+
+.is-mobile .immo24-import__controls {
+  flex-direction: column;
+}
+
+.is-mobile .immo24-import__controls input {
+  min-width: 100%;
+  width: 100%;
+}
+
+.is-mobile .immo24-import__controls .primary-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.is-mobile .upload-area {
+  padding: 32px 16px;
+  margin-top: 16px;
+}
+
+.is-mobile .upload-text {
+  font-size: 16px;
+}
+
+.is-mobile .browse-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+}
+
+.is-mobile .action-buttons {
+  flex-direction: column;
+  width: 100%;
+}
+
+.is-mobile .action-buttons button {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+}
+
+.is-mobile .queued-grid {
+  grid-template-columns: 1fr;
+}
+
+.is-mobile .queued-file {
+  padding: 12px;
+}
+
+/* iOS-specific touch and scroll improvements */
+.is-ios .upload-container {
+  /* Prevent bounce scrolling issues */
+  overscroll-behavior: contain;
+}
+
+.is-ios input,
+.is-ios select,
+.is-ios textarea {
+  /* Prevent zoom on input focus on iOS */
+  font-size: 16px !important;
+}
+
+.is-ios button {
+  /* Better touch feedback */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Safe area support for notched iPhones */
+.is-ios .upload-container {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.is-ios .upload-header {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+}
+
+/* Results page mobile optimizations */
+.is-mobile .results-page {
+  padding: 16px;
+}
+
+.is-mobile .results-header {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.is-mobile .results-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.is-mobile .metric-card {
+  padding: 16px;
+}
+
+.is-mobile .metric-value {
+  font-size: 24px;
+}
+
+.is-mobile .analysis-meta {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.is-mobile .analysis-meta > div {
+  width: 100%;
+}
+
+/* Detail modal mobile fullscreen */
+.is-mobile .detail-overlay {
+  padding: 0;
+}
+
+.is-mobile .detail-body {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  padding: 16px;
+}
+
+.is-mobile .detail-body__header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.is-mobile .close-detail {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* Horizon modal mobile fullscreen */
+.is-mobile .horizon-modal {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  margin: 0;
+}
+
+.is-mobile .horizon-modal__header {
+  padding: 16px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.is-mobile .horizon-modal__content {
+  padding: 12px;
+}
+
+.is-mobile .chart-section {
+  padding: 12px;
+}
+
+/* Landing page mobile */
+.is-mobile .landing-content {
+  padding: 20px;
+}
+
+.is-mobile .title {
+  width: 90%;
+  margin-bottom: 24px;
+}
+
+.is-mobile .button {
+  width: 70%;
+}
+
+/* Tablet optimizations */
+.is-tablet .upload-container {
+  width: 95%;
+  max-width: 800px;
+  padding: 24px;
+}
+
+.is-tablet .property-form {
+  flex-wrap: wrap;
+}
+
+.is-tablet .property-field {
+  flex: 1 1 45%;
+  min-width: 200px;
+}
+
+.is-tablet .results-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Improve touch targets for mobile */
+.is-mobile button,
+.is-mobile .primary-button,
+.is-mobile .secondary-button {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.is-mobile input,
+.is-mobile select {
+  min-height: 48px;
+  padding: 12px;
+}
+
+/* Mobile landscape adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .is-mobile .upload-container {
+    padding: 12px;
+  }
+  
+  .is-mobile .upload-area {
+    padding: 20px 16px;
+    margin-top: 12px;
+  }
+  
+  .is-mobile .upload-header {
+    padding: 12px 16px 8px;
+  }
+}
+
+/* Small phones (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .is-mobile .upload-container {
+    padding: 12px;
+  }
+  
+  .is-mobile .upload-header h2 {
+    font-size: 18px;
+  }
+  
+  .is-mobile .property-field label {
+    font-size: 11px;
+  }
+  
+  .is-mobile .immo24-import__labels label {
+    font-size: 12px;
+  }
+  
+  .is-mobile .browse-button {
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+}
